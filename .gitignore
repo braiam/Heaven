@@ -1,0 +1,40 @@
+# Credentials — NEVER commit
+auth_config.json
+steam_token.txt
+data/udid.txt
+
+# User data (per-account, not shareable)
+data/*.jsonl
+data/heir_capture_*.jsonl
+data/raw_capture.jsonl
+data/raw_full.jsonl
+data/skill_export.json
+notes.json
+
+# Image cache (downloaded from gametora)
+data/images/
+data/icons/
+
+# Large assets
+static/oguri_chibi.gif
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Node (for steam-user ticket generation)
+node_modules/
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store

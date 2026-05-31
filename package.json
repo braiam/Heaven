@@ -1,0 +1,9 @@
+{
+  "name": "heir-fetch",
+  "version": "1.0.0",
+  "description": "Steam ticket generator for Heir fetch.py",
+  "private": true,
+  "dependencies": {
+    "steam-user": "^5.0.0"
+  }
+}

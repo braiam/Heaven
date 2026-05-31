@@ -1,0 +1,3032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heaven - Breeding & Team Trials</title>
+<style>
+  :root{--bg:#0a0b0e;--panel:#13151a;--panel2:#1a1c22;--line:#252830;--txt:#e4e6eb;--mut:#7d8290;
+        --blue:#5aadff;--pink:#ff7ac0;--green:#8bd450;--white:#d9c27a;--ok:#43c98a;--accent:#5a9fd4;
+        --glow:rgba(90,159,212,0.12);--card-shadow:0 2px 8px rgba(0,0,0,0.3),0 1px 3px rgba(0,0,0,0.2)}
+  *{box-sizing:border-box;margin:0}
+  body{font:13.5px/1.45 'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt)}
+  /* custom scrollbar */
+  ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:#2a2d35;border-radius:4px} ::-webkit-scrollbar-thumb:hover{background:#383c46}
+  /* header */
+  header{padding:0 20px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:stretch;gap:0;height:48px}
+  header h1{font-size:17px;margin:0;display:flex;align-items:center;padding-right:16px;letter-spacing:-0.02em;
+            background:linear-gradient(135deg,var(--accent),#8b7adf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800}
+  .src{color:var(--mut);font-size:11px;display:flex;align-items:center;padding-right:12px;border-right:1px solid var(--line);margin-right:4px}
+  .tabs{display:flex;gap:0;margin-left:auto;align-items:stretch}
+  .tab{padding:0 18px;border:none;border-bottom:2px solid transparent;background:none;cursor:pointer;color:var(--mut);
+       font-size:13px;font-weight:600;letter-spacing:0.02em;transition:color .2s,border-color .2s;display:flex;align-items:center}
+  .tab:hover{color:var(--txt)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .hdr-actions{display:flex;align-items:center;gap:4px;margin-left:10px;flex-shrink:0}
+  .hdr-actions button{font-size:11px;padding:4px 10px;white-space:nowrap}
+  main{padding:16px 20px;max-width:1300px;margin:0 auto}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input,select,button,textarea{font:inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;transition:border-color .2s,box-shadow .2s}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--glow)}
+  button{cursor:pointer;background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;font-size:12.5px;
+         transition:background .15s,transform .1s,box-shadow .15s}
+  button:hover{background:#6aafe4;box-shadow:0 2px 8px rgba(90,159,212,0.3)}
+  button:active{transform:scale(0.97)}
+  button.ghost{background:var(--panel2);color:var(--mut);border-color:var(--line);font-weight:500}
+  button.ghost:hover{color:var(--txt);border-color:#3a3d46;background:#22252e}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;
+        box-shadow:var(--card-shadow);transition:border-color .2s}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-weight:600;font-size:11px;position:sticky;top:0;background:var(--panel);text-transform:uppercase;letter-spacing:.04em}
+  td.sparks{max-width:380px}
+  tr.urow:hover{background:#181e2c;cursor:pointer}
+  .note-in{width:170px} .tag-in{width:130px}
+  .muted{color:var(--mut)}
+  .hide{display:none !important}
+  .stat{color:var(--ok)}
+  /* selection */
+  ::selection{background:rgba(90,159,212,0.3);color:var(--txt)}
+  /* ---- uma.moe-style result cards ---- */
+  .ucard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;
+         box-shadow:var(--card-shadow);transition:border-color .2s,box-shadow .2s}
+  .ucard:hover{border-color:#333640;box-shadow:0 4px 16px rgba(0,0,0,0.35),0 1px 4px rgba(0,0,0,0.25)}
+  .uhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+         border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px}
+  .uname{font-size:15px;font-weight:800;letter-spacing:-0.01em}
+  .ustats{display:flex;align-items:center;gap:14px}
+  .us{display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,0.02)}
+  .us b{font-size:16px;font-weight:800} .us i{font-style:normal;font-size:9px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+  .c-aff{color:#ff5d8f} .c-g1{color:#5fd07a} .c-wh{color:#e0a94a} .c-sc{color:#5aa8ff} .c-target{color:#a98bff}
+  .ufoot{display:flex;gap:6px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .ufoot .note-in{flex:2;min-width:160px} .ufoot .tag-in{flex:1;min-width:120px} .ufoot .note-in,.ufoot .tag-in{width:auto}
+  .ufoot button{font-size:11px;padding:4px 10px}
+  /* ---- spark chips (estilo propio) ---- */
+  /* pildoras estilo uma.moe: rect redondeada, borde de tipo, "N*" con estrella en color */
+  /* pildoras estilo uma.moe: relleno oscuro tintado por tipo, texto del color del tipo */
+  .pl{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;margin:2px;
+      font-size:12px;background:#22242a;border:1px solid #30333b;white-space:nowrap;transition:transform .1s,box-shadow .15s}
+  .pl:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,0.3)}
+  .pl .st{font-weight:700;font-size:11.5px}
+  .pl .val{color:#aeb6c2;font-size:10.5px}
+  .pl .you{color:#e0a94a;font-size:10.5px}     /* aportacion propia, dorado */
+  .pl-blue {background:#132540;border-color:#264a72} .pl-blue .st,.pl-blue .nm {color:#7fb0e6}
+  .pl-pink {background:#351a26;border-color:#5e2d42} .pl-pink .st,.pl-pink .nm {color:#df8aa6}
+  .pl-green{background:#182c16;border-color:#34522c} .pl-green .st,.pl-green .nm{color:#8cc068}
+  .pl-white{background:#24262b;border-color:#36393f} .pl-white .st,.pl-white .nm{color:#c2c0c8}
+  /* race list panel under each uma card */
+  .races-panel{margin-top:8px;padding:10px 14px;border-top:1px solid var(--line);background:#11131a;border-radius:0 0 10px 10px;font-size:11.5px;
+               animation:panel-slide .2s ease}
+  @keyframes panel-slide{from{opacity:0;max-height:0}to{opacity:1;max-height:600px}}
+  .races-panel .rsec{margin-bottom:5px}
+  .races-panel .rsec b{color:var(--accent);margin-right:8px;display:inline-block;min-width:50px;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+  .races-panel .rname{display:inline-block;padding:2px 7px;margin:1.5px;border-radius:4px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);font-size:11px}
+  .races-panel .rname.title{background:#2a2030;color:#ffcf6e;border-color:#4a3a2a;font-weight:600}
+  .races-panel .rname.g1{color:#ff8aa6;border-color:#5e2d42}
+  .races-panel .rname.g2{color:#bcdcf3;border-color:#264a72}
+  .races-panel .rname.g3{color:#c2c0c8}
+  /* highlight chip when its factor name is active in the inventory filters */
+  .pl.pl-hi{box-shadow:0 0 0 2px rgba(90,159,212,0.45), 0 0 10px rgba(90,159,212,0.2);
+            border-color:var(--accent);background-color:#1a2836}
+  .pl.pl-hi .nm{color:#bcdcf3;font-weight:600}
+  .pl.pl-hi:hover{box-shadow:0 0 0 2px rgba(90,159,212,0.6), 0 0 14px rgba(90,159,212,0.3)}
+  /* breed-relevant skill highlight (gold) */
+  .pl.pl-breed{box-shadow:0 0 0 2px rgba(218,165,32,0.5), 0 0 10px rgba(218,165,32,0.2);
+               border-color:gold;background-color:#2a2518}
+  .pl.pl-breed .nm{color:#f0d060;font-weight:600}
+  .pl.pl-breed:hover{box-shadow:0 0 0 2px rgba(218,165,32,0.7), 0 0 14px rgba(218,165,32,0.3)}
+  /* grupos por tipo con barra de color a la izquierda (como uma.moe) */
+  .fg{display:flex;flex-wrap:wrap;gap:0;padding:4px 0 4px 12px;border-left:3px solid #2c3543;margin:4px 0}
+  .fg-blue{border-left-color:#4a78a8} .fg-pink{border-left-color:#b1648c}
+  .fg-green{border-left-color:#6c9c4d} .fg-white{border-left-color:#34373e}
+  /* arbol de retratos circulares */
+  .ptcol{display:flex;flex-direction:column;align-items:center;gap:0;min-width:150px}
+  .rport{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--line);background:#080a0e;
+         box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:border-color .2s,transform .2s}
+  .rport:hover{border-color:var(--accent);transform:scale(1.05)}
+  .rport.sm{width:48px;height:48px}
+  .ph2{color:var(--pink);font-weight:700;font-size:12px}
+  .pconn{color:#2a2e38;font-size:16px;line-height:1;padding:2px 0;position:relative}
+  .pconn::before{content:'';position:absolute;left:50%;top:0;width:1px;height:100%;background:linear-gradient(to bottom,var(--line),transparent)}
+  .prow{display:flex;gap:16px;justify-content:center;position:relative}
+  .prow::before{content:'';position:absolute;top:-2px;left:25%;right:25%;height:1px;background:var(--line)}
+  .pcell{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .pcell .nm{font-size:10.5px;color:var(--mut);max-width:78px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* character picker modal */
+  .chara-picker-bg{position:fixed;inset:0;background:rgba(4,5,8,.88);display:flex;align-items:center;justify-content:center;z-index:1500;backdrop-filter:blur(6px);animation:overlay-in .2s ease}
+  .chara-picker-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:640px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 64px rgba(0,0,0,.7);animation:modal-in .25s ease}
+  .chara-picker-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);font-weight:700;font-size:16px}
+  .chara-picker-header button{background:none;border:none;color:var(--mut);font-size:20px;cursor:pointer;line-height:1;padding:2px 6px}
+  .chara-picker-header button:hover{color:var(--txt)}
+  .chara-picker-search{margin:12px 14px;padding:8px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);font:inherit;font-size:13px;outline:none}
+  .chara-picker-search:focus{border-color:var(--accent)}
+  .chara-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;padding:0 14px 14px;overflow-y:auto}
+  .chara-pick-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:background .15s,border-color .15s}
+  .chara-pick-item:hover{background:var(--panel2);border-color:var(--accent)}
+  .chara-pick-item img{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#0a0d12;border:2px solid var(--line)}
+  .chara-pick-item .cpname{font-size:11px;color:var(--mut);text-align:center;line-height:1.3;max-width:88px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  /* target picker button */
+  .target-pick-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+  .target-pick-btn{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;cursor:pointer;flex:1;min-width:0;
+                   transition:border-color .2s,box-shadow .2s,background .15s}
+  .target-pick-btn:hover{border-color:var(--accent);box-shadow:0 0 0 2px var(--glow);background:#1e2028}
+  .target-pick-btn .tp-portrait{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--line);background:#080a0e;flex-shrink:0}
+  .target-pick-btn .tp-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;color:var(--mut)}
+  .target-pick-btn .tp-name.picked{color:var(--txt);font-weight:600}
+  .target-pick-btn .tp-arrow{color:var(--mut);font-size:10px;margin-left:auto;flex-shrink:0}
+  /* update notification */
+  #restart.update-avail{border-color:var(--ok);box-shadow:0 0 0 0 rgba(67,201,138,0.6);animation:pulse-upd 1.8s ease-out infinite}
+  #restart.update-avail::before{content:"●";color:var(--ok);margin-right:6px;font-size:9px;vertical-align:middle}
+  @keyframes pulse-upd{0%{box-shadow:0 0 0 0 rgba(67,201,138,0.55)}70%{box-shadow:0 0 0 8px rgba(67,201,138,0)}100%{box-shadow:0 0 0 0 rgba(67,201,138,0)}}
+  .toast{position:fixed;top:56px;right:20px;background:var(--panel);border:1px solid var(--ok);color:var(--txt);
+         padding:10px 14px;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:2000;
+         display:flex;align-items:center;gap:10px;font-size:12px;max-width:340px;animation:toast-in .3s ease;
+         backdrop-filter:blur(8px)}
+  .toast .toast-x{cursor:pointer;color:var(--mut);font-size:16px;line-height:1;transition:color .15s}
+  .toast .toast-x:hover{color:var(--txt)}
+  @keyframes toast-in{from{transform:translateY(-12px) scale(0.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+  /* ---- setup modal ---- */
+  .setup-bg{position:fixed;inset:0;background:rgba(4,5,8,.88);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(8px);animation:overlay-in .2s ease}
+  .setup-wrap{display:flex;align-items:center;gap:20px}
+  .setup-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px 26px;width:480px;max-width:92vw;box-shadow:0 12px 60px rgba(0,0,0,.6);animation:modal-in .25s ease}
+  .setup-tabs{display:flex;gap:6px;margin:14px 0 0;border-bottom:1px solid var(--line)}
+  .setup-tab{background:none;border:none;color:var(--mut);padding:8px 14px;cursor:pointer;font:inherit;font-size:13px;border-bottom:2px solid transparent;font-weight:600;border-radius:0}
+  .setup-tab:hover{color:var(--txt)}
+  .setup-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .setup-tab small{font-size:10px;color:var(--ok);font-weight:700;margin-left:6px;letter-spacing:.05em}
+  .setup-chibi-col{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .setup-chibi{width:240px;height:auto;filter:drop-shadow(0 8px 24px rgba(74,143,181,0.35))}
+  .setup-chibi-msg{font-size:12px;color:var(--mut);text-align:center;font-style:italic;letter-spacing:.02em}
+  @media (max-width:900px){ .setup-chibi-col{display:none} }
+  .setup-card h2{margin:0 0 6px;font-size:20px;color:var(--accent)}
+  .setup-card .sub{color:var(--mut);font-size:13px;margin-bottom:18px}
+  .setup-step{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .setup-step:last-child{border-bottom:none}
+  .setup-step .dot{width:18px;height:18px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mut);font-weight:700}
+  .setup-step.active .dot{background:#222c40;border-color:var(--accent);color:var(--accent)}
+  .setup-step.done .dot{background:#1b3a2a;border-color:var(--ok);color:var(--ok)}
+  .setup-step.err .dot{background:#3a1b1b;border-color:#d44;color:#f88}
+  .setup-form{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .setup-form label{font-size:12px;color:var(--mut)}
+  .setup-form input{width:100%}
+  .setup-msg{padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px;color:var(--mut);margin-top:14px;white-space:pre-wrap;word-break:break-word;max-height:90px;overflow:auto}
+  .setup-msg.err{color:#f99;border-color:#5a2222}
+  .setup-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  /* ---- badges ---- */
+  .port{width:46px;height:46px;border-radius:8px;object-fit:cover;border:1px solid var(--line);background:#080a0e;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+  .port.sm{width:30px;height:30px;border-radius:6px} .port.lg{width:74px;height:74px;border-radius:12px}
+  .rankb{display:inline-block;padding:2px 7px;border-radius:5px;background:linear-gradient(135deg,#2a2030,#322438);color:#ffcf6e;border:1px solid #4a3a2a;font-weight:700;font-size:12px}
+  .whiteb{display:inline-block;padding:2px 7px;border-radius:5px;background:#2e2a1c;color:var(--white);border:1px solid #4a432a;font-weight:700;font-size:12px}
+  .friendb{background:linear-gradient(135deg,#1a2e28,#1c3430);color:#5fd0a8;border:1px solid #2a4a40;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px}
+  .matchb{display:inline-block;padding:1px 7px;border-radius:5px;background:#1e2c46;color:#7fb2ff;font-size:10px;font-weight:600}
+  .pill{display:inline-block;padding:2px 8px;border-radius:5px;background:#1e2c46;color:var(--blue);font-size:11px;margin-right:5px}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line);font-size:12px;margin:2px;transition:border-color .15s}
+  .chip:hover{border-color:#3a3d46}
+  .chip .x{cursor:pointer;color:var(--mut);transition:color .15s} .chip .x:hover{color:#e06b6b}
+  .combo{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;background:var(--panel2);
+         box-shadow:0 1px 3px rgba(0,0,0,0.15);transition:border-color .2s,background .2s,transform .15s}
+  .cpair{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;flex-wrap:wrap}
+  .cpair .cx{color:var(--mut);font-weight:400}
+  .cmeta{margin-top:5px;font-size:12px} .cmeta .c-aff{font-size:14px}
+  .combo.clickable{cursor:pointer} .combo.clickable:hover{border-color:var(--accent);background:#1e2230;transform:translateX(3px)}
+  #tray{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--panel);border-top:1px solid var(--line);
+        padding:8px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,.5);
+        backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .trayslot{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:12px}
+  .trayslot i{color:var(--accent);font-style:normal;font-weight:700}
+  .bp{font-size:11px;padding:3px 8px}
+  .srcbtn{transition:all .15s}
+  .srcbtn.active{background:#1c2840;border-color:var(--accent);color:var(--accent)}
+  .pkwrap{position:relative} .pkin{width:240px}
+  .pkdrop{position:absolute;z-index:30;top:38px;left:0;width:300px;max-height:260px;overflow:auto;
+          background:var(--panel2);border:1px solid var(--line);border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  .pkitem{padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--line);font-size:13px}
+  .pkitem:hover{background:#262a31} .pkitem small{color:var(--mut)}
+  /* ---- factor filter rows ---- */
+  .fcat{border-top:1px solid var(--line);padding:7px 0}
+  .fhead{display:flex;justify-content:space-between;align-items:center}
+  .fhead .lab{font-size:12px;color:var(--mut)}
+  .frow{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;padding:4px 8px;background:rgba(255,255,255,0.015);border-radius:6px}
+  .frow select,.frow input{padding:4px 7px;font-size:12px}
+  .frow .x{cursor:pointer;color:#c05050;font-weight:700;padding:0 4px;font-size:14px;transition:color .15s} .frow .x:hover{color:#e06b6b}
+  .addf{font-size:11px;padding:3px 10px}
+  .stars-b{color:var(--blue)} .stars-p{color:var(--pink)} .stars-g{color:var(--green)} .stars-w{color:var(--white)}
+  /* ---- detail modal ---- */
+  .overlay{position:fixed;inset:0;background:rgba(4,5,8,.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+           display:flex;align-items:center;justify-content:center;z-index:50;animation:overlay-in .2s ease}
+  .overlay.hide{display:none}
+  @keyframes overlay-in{from{opacity:0}to{opacity:1}}
+  .modal{background:#12141a;border:1px solid #282a33;border-radius:12px;padding:20px;max-width:1000px;width:94%;max-height:92vh;
+         overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,0.03) inset;animation:modal-in .25s ease}
+  @keyframes modal-in{from{transform:scale(0.96) translateY(10px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+  .tree{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .ptree{display:flex;gap:10px}
+  .pnode{text-align:center} .pnode .heart{color:var(--pink);font-weight:700;font-size:12px}
+  .seclab{font-size:12px;color:var(--mut);margin:14px 0 4px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line);padding-bottom:3px}
+  .pcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
+  .pcard .ph{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .gprow{display:flex;gap:8px;margin-top:8px;padding-left:14px;border-left:2px solid var(--line);flex-wrap:wrap}
+  .gpcard{flex:1;min-width:260px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+  .gpcard .ph{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:13px}
+  .heart{color:var(--pink);font-weight:700;font-size:12px}
+  .dedit{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .dedit textarea{width:300px;min-height:46px} .dedit input{width:220px}
+  /* ---- minimalist detail ---- */
+  .drow{display:flex;align-items:center;gap:12px}
+  .dname{font-size:18px;font-weight:800;letter-spacing:-0.02em} .dmeta{color:var(--mut);font-size:11.5px;margin-top:2px}
+  .dedit2{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}
+  .dedit2 input{flex:1;min-width:140px} .dedit2 #dNote{flex:2}
+  .dmain{display:flex;gap:18px;align-items:flex-start;margin-top:10px}
+  .fgrid{flex:1;min-width:0}
+  .dtree{display:flex;align-items:center;gap:10px;margin:6px 0 14px;flex-wrap:wrap}
+  .tn{display:flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:5px 9px}
+  .tn .nm{font-size:12px} .ar{color:var(--mut);font-size:12px}
+  .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
+  .glab{width:74px;flex:none;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+  .sk em{font-style:normal;color:var(--mut);font-size:10px;margin-left:2px} /* you N */
+  .sk .pc{color:var(--mut);font-size:10px}
+  small{color:var(--mut)}
+  /* ---- affinity tab ---- */
+  .aff-rank-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);transition:background .2s,transform .15s}
+  .aff-rank-row:hover{background:#181e2c;transform:translateX(2px)}
+  .aff-rank-row:nth-child(even){background:rgba(255,255,255,0.01)}
+  .aff-rank-row .aport{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--line);background:#080a0e;flex-shrink:0;
+                       box-shadow:0 1px 4px rgba(0,0,0,0.3);transition:border-color .2s}
+  .aff-rank-row:hover .aport{border-color:var(--accent)}
+  .aff-rank-row .ainfo{flex:1;min-width:0}
+  .aff-rank-row .aname{font-weight:700;font-size:13px}
+  .aff-rank-row .ameta{font-size:10.5px;color:var(--mut)}
+  .aff-rank-row .anums{display:flex;gap:12px;align-items:center;flex-shrink:0}
+  .aff-rank-row .anum{text-align:center;min-width:46px}
+  .aff-rank-row .anum b{display:block;font-size:14px;font-weight:800}
+  .aff-rank-row .anum small{font-size:9.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+  .aff-rank-row .abtns{display:flex;gap:3px;flex-shrink:0}
+  .aff-rank-row .abtns button{padding:3px 9px;font-size:10.5px}
+  .wsb-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700}
+  .wsb-badge.cached{background:#1b3a2a;color:var(--ok);border:1px solid #2a5a3a}
+  .wsb-badge.missing{background:#2a2030;color:#a88;border:1px solid #4a3040}
+  .aff-pair-box{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:16px;margin-top:8px;
+               box-shadow:inset 0 1px 0 rgba(255,255,255,0.03)}
+  .aff-pair-total{font-size:36px;font-weight:900;color:#ffcf6e;text-align:center;
+                  text-shadow:0 0 24px rgba(255,207,110,0.2);letter-spacing:-0.02em}
+  .aff-pair-formula{font-size:11.5px;color:var(--mut);text-align:center;margin-top:4px;font-family:'SF Mono',Consolas,monospace}
+  .aff-pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .aff-pair-parent{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px}
+  .aff-pair-parent .aph{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .aff-pair-parent .aph img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid var(--line)}
+  .aff-pair-parent .aph b{font-size:14px}
+  .aff-pair-parent .arow{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e2028;font-size:13px}
+  .aff-pair-parent .arow:last-child{border-bottom:none;font-weight:700;color:var(--accent)}
+  .aff-pair-cross{text-align:center;margin-top:12px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:9px;font-size:13px}
+  @media(max-width:700px){.aff-pair-grid{grid-template-columns:1fr}}
+  /* ko-fi banner — slim and subtle */
+  .kofi-banner{display:flex;align-items:center;gap:10px;padding:6px 20px;background:linear-gradient(90deg,var(--panel),#161820);
+               border-bottom:1px solid var(--line);font-size:12px;color:var(--mut);flex-wrap:wrap}
+  .kofi-banner.hide{display:none}
+  .kofi-btn{display:none}
+  .kofi-link{display:inline-flex;padding:4px 12px;border-radius:5px;background:#e04e4b;color:#fff;
+             font-weight:700;font-size:11px;text-decoration:none;letter-spacing:.04em;
+             transition:background .15s,transform .1s;white-space:nowrap}
+  .kofi-link:hover{background:#ff5e5b;transform:scale(1.03)}
+  .kofi-txt{flex:1;min-width:200px;font-size:11.5px}
+  .kofi-txt a{color:var(--accent);text-decoration:none} .kofi-txt a:hover{text-decoration:underline}
+  .kofi-x{cursor:pointer;color:var(--mut);font-size:14px;padding:2px 6px;flex-shrink:0;line-height:1;transition:color .15s}
+  .kofi-x:hover{color:var(--txt)}
+  /* ---- breed tab redesign ---- */
+  .breed-top{padding:16px 18px !important}
+  .breed-header{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .breed-label{font-size:13px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  .breed-grid{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+  .breed-field{display:flex;flex-direction:column;gap:3px}
+  .breed-target-field{width:220px}
+  .breed-fl{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .breed-input{padding:7px 10px;font-size:13px}
+  .breed-num{width:72px;text-align:center;-moz-appearance:textfield}
+  .breed-num::-webkit-inner-spin-button,.breed-num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+  .breed-go{padding:8px 20px !important;font-size:13px !important;align-self:end;
+            background:linear-gradient(135deg,var(--accent),#4a8fb5) !important;box-shadow:0 2px 8px rgba(90,159,212,0.3);white-space:nowrap}
+  .breed-go:hover{box-shadow:0 4px 16px rgba(90,159,212,0.45) !important;transform:translateY(-1px)}
+  .breed-prep{padding:14px 18px !important}
+  .breed-prep-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:10px}
+  .breed-prep-label{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;
+                    padding:4px 10px;background:rgba(90,159,212,0.1);border-radius:4px;border:1px solid rgba(90,159,212,0.2)}
+  .breed-sel{font-size:12.5px;padding:6px 10px}
+  .breed-want-row{display:flex;gap:8px}
+  .breed-manual{padding:10px 18px !important;border-left:3px solid var(--accent);display:flex;align-items:center;gap:10px}
+  .breed-manual b{font-size:12px;white-space:nowrap}
+  .breed-manual .muted{font-size:11px}
+  .breed-results{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px}
+  .breed-col{min-width:0}
+  .breed-col-header{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;
+                    padding:8px 12px;margin-bottom:8px;border-bottom:2px solid var(--accent);background:linear-gradient(to right,rgba(90,159,212,0.08),transparent)}
+  @media(max-width:900px){.breed-grid{grid-template-columns:1fr 1fr;} .breed-results{grid-template-columns:1fr}}
+  /* breed combo cards (results) */
+  .combo{position:relative;overflow:hidden}
+  .combo::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:0;transition:opacity .2s}
+  .combo.clickable:hover::before{opacity:1}
+  .combo .cpair .port{border-radius:50%;border:2px solid var(--line)}
+  .combo .cmeta{display:flex;align-items:center;gap:8px}
+  /* ---- spark proc odds (hakuraku-style) ---- */
+  .odds-toggle{display:flex;gap:4px}
+  .odds-btn{font-size:11px !important;padding:3px 10px !important;border-radius:5px !important}
+  .odds-btn.active{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
+  .odds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 12px;margin-top:8px;max-height:420px;overflow-y:auto;padding-right:4px}
+  .odds-type-header{grid-column:1/-1;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+                    padding:6px 0 2px;border-bottom:1px solid var(--line);margin-top:4px}
+  .odds-type-header:first-child{margin-top:0}
+  .odds-row{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:6px;
+            transition:border-color .15s}
+  .odds-row:hover{border-color:#3a3d46}
+  .odds-name{flex:1;min-width:0;font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .odds-star{font-size:9px;padding:1px 4px;border-radius:3px;margin-left:2px;font-weight:700}
+  .odds-star-p1{background:#1c2840;color:var(--accent)}
+  .odds-star-p2{background:#2a1c30;color:var(--pink)}
+  .odds-bar-wrap{width:80px;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;flex-shrink:0;border:1px solid var(--line)}
+  .odds-bar{height:100%;border-radius:3px;transition:width .4s ease}
+  .odds-val{font-size:12px;font-weight:800;min-width:50px;text-align:right;flex-shrink:0}
+  .odds-ge2-wrap{min-width:56px;flex-shrink:0}
+  .odds-ge2{font-size:9.5px;color:var(--mut);white-space:nowrap}
+  @media(max-width:800px){.odds-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:500px){.odds-grid{grid-template-columns:1fr}}
+
+  /* ============================================================
+     TEAM TRIALS ANALYZER STYLES (merged from TTAnalyzer dashboard)
+     ============================================================ */
+  /* TT design tokens — mapped to Heir's palette */
+  .tt-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 26px;margin-bottom:22px}
+  .tt-card-header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .tt-card-title{font-size:16px;font-weight:700;color:var(--txt);margin:0}
+  .tt-card-sub{font-size:12px;color:var(--mut);font-weight:400}
+  .tt-card-tools{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+  /* TT hero bar */
+  .tt-hero{padding:16px 20px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;border-radius:10px}
+  .tt-hero-title{font-size:17px;font-weight:800;color:var(--accent)}
+  .tt-hero-stats{display:flex;gap:8px;flex-wrap:wrap}
+  .tt-stat-chip{padding:5px 12px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:12px;color:var(--mut);display:flex;align-items:center;gap:5px}
+  .tt-stat-chip b{color:var(--txt);font-weight:700}
+  .tt-stat-chip.tt-accent{background:rgba(90,159,212,0.1);border-color:rgba(90,159,212,0.3);color:var(--accent)}
+  .tt-stat-chip.tt-accent b{color:var(--accent)}
+  .tt-hero-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+  /* Capture badge */
+  .tt-capture-badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#ff6e7e;
+    padding:6px 12px;border-radius:8px;background:rgba(255,110,126,0.12);border:1px solid rgba(255,110,126,0.35)}
+  .tt-capture-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:#ff6e7e;animation:tt-pulse 1.2s ease-in-out infinite}
+  @keyframes tt-pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .btn-capture{background:linear-gradient(135deg,var(--ok),#3fbf6f);border:1px solid transparent;color:#06210f;font-weight:700;padding:6px 14px;border-radius:6px;cursor:pointer;font:inherit;font-size:12px}
+  .btn-capture:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .btn-capture.recording{background:linear-gradient(135deg,#ff6e7e,#e0455a);color:#fff}
+
+  /* TT player grid */
+  .tt-player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+  .tt-player-cell{padding:11px 14px;background:var(--panel2);border:1px solid var(--line);border-radius:8px}
+  .tt-player-cell-label{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;font-weight:600}
+  .tt-player-cell-value{font-size:15px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums}
+
+  /* TT race analysis table */
+  .tt-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+  table.tt-race{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  table.tt-race th,table.tt-race td{padding:11px 6px;border-bottom:1px solid var(--line);vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
+  table.tt-race th:first-child,table.tt-race td:first-child{padding-left:14px}
+  table.tt-race th:last-child,table.tt-race td:last-child{padding-right:14px}
+  table.tt-race th{font-size:10px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;font-weight:700;background:var(--panel2);text-align:right}
+  table.tt-race th:first-child{text-align:left;width:200px}
+  table.tt-race th.trial-col{width:var(--trial-col-w,62px);font-size:9.5px}
+  table.tt-race td.trial-col{font-size:12px}
+  table.tt-race th.stat-col{width:68px}
+  table.tt-race th.verdict-col{width:96px;text-align:center}
+  table.tt-race td.verdict-col{text-align:center}
+  table.tt-race td:first-child{text-align:left}
+  table.tt-race tbody tr{height:68px;transition:background .1s ease}
+  table.tt-race tbody tr:hover{background:var(--panel2);cursor:pointer}
+  table.tt-race td.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.tt-race td.muted{color:var(--mut)}
+
+  /* Uma cell in TT race table */
+  .tt-uma-cell{display:flex;align-items:center;gap:12px;height:50px}
+  .tt-uma-icon-wrap{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#2a2335,#1a1525);flex-shrink:0;
+    border:2px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--mut);position:relative}
+  .tt-uma-icon-wrap>span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:0}
+  .tt-uma-icon{width:100%;height:100%;object-fit:cover;object-position:50% 0%;display:block;position:relative;z-index:1}
+  .tt-uma-name{font-weight:700;font-size:13px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+  .tt-uma-id{font-size:10px;color:var(--mut);margin-top:3px}
+
+  /* Score colors */
+  .tt-score-good{color:var(--ok)} .tt-score-warn{color:#ffce4d} .tt-score-bad{color:#ff6e7e}
+  .tt-cv-good{color:var(--ok)} .tt-cv-mid{color:#ffce4d} .tt-cv-bad{color:#ff6e7e}
+
+  /* Verdict pills */
+  .tt-verdict-pill{display:inline-block;padding:4px 8px;border-radius:5px;font-size:9.5px;font-weight:700;letter-spacing:.04em;border:1px solid;white-space:nowrap}
+  .tt-verdict-pill.good{color:var(--ok);border-color:rgba(67,201,138,0.4);background:rgba(67,201,138,0.1)}
+  .tt-verdict-pill.mid{color:#ffce4d;border-color:rgba(255,206,77,0.4);background:rgba(255,206,77,0.1)}
+  .tt-verdict-pill.bad{color:#ff6e7e;border-color:rgba(255,110,126,0.4);background:rgba(255,110,126,0.1)}
+
+  /* Skill detail panel */
+  .tt-detail-panel{margin-top:18px;padding:18px 20px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
+  .tt-skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px;margin-top:8px}
+  .tt-skill-row{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-radius:6px;background:var(--panel2);font-size:12px}
+  .tt-skill-row.always{background:rgba(67,201,138,0.12);border:1px solid rgba(67,201,138,0.32)}
+  .tt-skill-row.often{background:rgba(255,206,77,0.1);border:1px solid rgba(255,206,77,0.28)}
+  .tt-skill-row.rare{background:rgba(255,140,80,0.1);border:1px solid rgba(255,140,80,0.28)}
+  .tt-skill-row.never{background:rgba(255,110,126,0.14);border:1px solid rgba(255,110,126,0.4)}
+  .tt-skill-pct{font-weight:700;font-variant-numeric:tabular-nums}
+
+  .tt-section-label{font-size:11px;color:var(--txt);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin:16px 0 6px;display:flex;align-items:center;gap:8px}
+  .tt-section-label::before{content:"✦";color:var(--accent);font-size:13px;line-height:1}
+
+  /* Planner / Lookup tables */
+  table.tt-planner{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  table.tt-planner th,table.tt-planner td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:right}
+  table.tt-planner tbody tr:last-child td{border-bottom:none}
+  table.tt-planner th:first-child,table.tt-planner td:first-child{text-align:left}
+  table.tt-planner th{font-size:10px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;font-weight:700;background:var(--panel2)}
+  table.tt-planner td.skill-name{font-weight:600;color:var(--txt);max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  table.tt-planner td.muted{color:var(--mut)}
+  table.tt-planner tbody tr:hover{background:var(--panel2)}
+
+  .tt-verdict-tag{font-size:10px;font-weight:800;padding:4px 9px;border-radius:5px;letter-spacing:.05em;display:inline-block;border:1px solid}
+  .tt-vt-must{background:rgba(67,201,138,0.18);color:var(--ok);border-color:rgba(67,201,138,0.45)}
+  .tt-vt-good{background:rgba(90,159,212,0.16);color:var(--accent);border-color:rgba(90,159,212,0.4)}
+  .tt-vt-cons{background:rgba(255,206,77,0.14);color:#ffce4d;border-color:rgba(255,206,77,0.4)}
+  .tt-vt-gamble{background:rgba(180,130,255,0.18);color:#b482ff;border-color:rgba(180,130,255,0.4)}
+  .tt-vt-meh{background:var(--panel2);color:var(--mut);border-color:var(--line)}
+  .tt-vt-skip{background:rgba(255,110,126,0.14);color:#ff6e7e;border-color:rgba(255,110,126,0.4)}
+  .tt-vt-no{background:var(--panel2);color:var(--mut);border-color:var(--line)}
+
+  .tt-plan-section-title{font-size:11px;color:var(--txt);letter-spacing:.1em;text-transform:uppercase;margin:22px 0 6px;font-weight:700;display:flex;align-items:center;gap:10px}
+  .tt-plan-section-title::before{content:"✦";color:var(--accent);font-size:14px;line-height:1}
+  .tt-plan-section-sub{font-size:11px;color:var(--mut);margin:-4px 0 8px 13px}
+
+  /* Lookup summary */
+  .tt-lookup-summary{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:16px 20px;background:linear-gradient(135deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:8px;margin-bottom:14px}
+  .tt-lookup-skill-name{font-size:18px;font-weight:800;color:var(--txt)}
+  .tt-lookup-meta{font-size:11px;color:var(--mut);margin-top:2px}
+  .tt-lookup-overall{margin-left:auto;text-align:right}
+  .tt-lookup-overall-pct{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+  .tt-lookup-overall-sub{font-size:11px;color:var(--mut);margin-top:4px}
+
+  /* Stadium / Track & Condition */
+  .tt-category-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+  .tt-cat-pill{background:var(--panel2);border:1px solid var(--line);color:var(--mut);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.03em;transition:all .15s ease;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
+  .tt-cat-pill:hover{color:var(--txt);border-color:#3a3d46}
+  .tt-cat-pill.active{background:rgba(90,159,212,0.12);border-color:rgba(90,159,212,0.4);color:var(--accent)}
+  .tt-cat-pill .cat-count{font-size:10px;font-weight:700;background:var(--bg);padding:1px 7px;border-radius:10px;font-variant-numeric:tabular-nums}
+  .tt-cat-pill.active .cat-count{background:rgba(90,159,212,0.18);color:var(--accent)}
+
+  .tt-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:22px}
+  .tt-tile{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .tt-tile-title{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:10px}
+  .tt-tile-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0}
+  .tt-tile-row .label{color:var(--txt);flex:1}
+  .tt-tile-row .count{color:var(--mut);font-variant-numeric:tabular-nums;min-width:28px;text-align:right}
+  .tt-tile-row .bar-wrap{flex:1.5;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;min-width:40px}
+  .tt-tile-row .bar{height:100%;background:linear-gradient(90deg,var(--accent),#5aadff);border-radius:3px}
+  .tt-tile-row .pct{font-size:11px;color:var(--txt);font-variant-numeric:tabular-nums;min-width:44px;text-align:right;font-weight:600}
+
+  .tt-gate-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:4px}
+  .tt-gate-cell{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 4px;text-align:center;font-size:11px}
+  .tt-gate-cell .g-num{color:var(--mut);font-weight:700}
+  .tt-gate-cell .g-pct{font-size:13px;font-weight:800;color:var(--txt);margin-top:3px;font-variant-numeric:tabular-nums}
+  .tt-gate-cell .g-bar{height:3px;background:var(--accent);border-radius:2px;margin-top:4px;opacity:0.6}
+
+  table.tt-stadium{width:100%;border-collapse:collapse;font-size:12px;table-layout:auto}
+  table.tt-stadium th,table.tt-stadium td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:left}
+  table.tt-stadium th{font-size:10px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;font-weight:700;background:var(--panel2);white-space:nowrap}
+  table.tt-stadium td.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.tt-stadium td.muted{color:var(--mut)}
+  table.tt-stadium tbody tr:hover{background:var(--panel2)}
+
+  .tt-pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.04em;border:1px solid}
+  .tt-pill-turf{background:rgba(67,201,138,0.12);color:var(--ok);border-color:rgba(67,201,138,0.35)}
+  .tt-pill-dirt{background:rgba(255,165,80,0.12);color:#ffa550;border-color:rgba(255,165,80,0.35)}
+  .tt-pill-sunny{background:rgba(255,206,77,0.12);color:#ffce4d;border-color:rgba(255,206,77,0.32)}
+  .tt-pill-cloudy{background:var(--panel2);color:var(--mut);border-color:var(--line)}
+  .tt-pill-rain{background:rgba(90,159,212,0.14);color:var(--accent);border-color:rgba(90,159,212,0.35)}
+  .tt-pill-snow{background:rgba(190,210,255,0.14);color:#d0deff;border-color:rgba(190,210,255,0.3)}
+  .tt-pill-firm{background:rgba(67,201,138,0.12);color:var(--ok);border-color:rgba(67,201,138,0.3)}
+  .tt-pill-good{background:rgba(180,255,140,0.1);color:#bdf08c;border-color:rgba(180,255,140,0.25)}
+  .tt-pill-soft{background:rgba(255,206,77,0.12);color:#ffce4d;border-color:rgba(255,206,77,0.32)}
+  .tt-pill-heavy{background:rgba(255,110,126,0.14);color:#ff6e7e;border-color:rgba(255,110,126,0.35)}
+
+  /* TT form elements */
+  .tt-form-row{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+  .tt-form-field{flex:1;min-width:160px}
+  .tt-field-label{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:6px}
+  .tt-select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);font-size:13px;padding:9px 12px;border-radius:8px;font-family:inherit;width:100%;cursor:pointer}
+  .tt-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(90,159,212,0.2)}
+  .tt-input{background:var(--panel2);border:1px solid var(--line);color:var(--txt);font-size:13px;padding:9px 12px;border-radius:8px;font-family:inherit;width:100%}
+  .tt-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(90,159,212,0.2)}
+  .tt-input::placeholder{color:var(--mut)}
+  .tt-btn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+  .tt-btn:hover{border-color:#3a3d46;background:var(--panel)}
+  .tt-btn-primary{background:linear-gradient(135deg,var(--accent),#4a8fb5);border:1px solid transparent;color:#fff;text-transform:uppercase;font-weight:700;letter-spacing:.07em;padding:9px 20px;box-shadow:0 4px 14px rgba(90,159,212,0.25)}
+  .tt-btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .tt-btn-ghost{background:transparent;border:1px solid var(--line);color:var(--mut)}
+  .tt-btn-ghost:hover{color:var(--txt);border-color:#3a3d46}
+
+  .tt-status-line{font-size:11px;color:var(--mut)}
+  .tt-empty{padding:50px 24px;text-align:center;color:var(--mut);font-size:13px}
+
+  .tt-filter-input{background:var(--panel2);border:1px solid var(--line);color:var(--txt);font-size:12px;padding:6px 9px;border-radius:6px;width:64px;font-family:inherit}
+  .tt-filter-input:focus{outline:none;border-color:var(--accent)}
+
+  .tt-sortable{cursor:pointer;user-select:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Heaven</h1>
+  <span class="src" id="src">loading...</span>
+  <div class="tabs">
+    <div class="tab active" data-tab="inv">Inventory</div>
+    <div class="tab" data-tab="affinity">Affinity</div>
+    <div class="tab" data-tab="breed">Breed</div>
+    <div class="tab" data-tab="tt-overview">Team Trials</div>
+    <div class="tab" data-tab="tt-planner">Skill Planner</div>
+    <div class="tab" data-tab="tt-lookup">Skill Lookup</div>
+    <div class="tab" data-tab="tt-stadium">Track &amp; Condition</div>
+  </div>
+  <div class="hdr-actions">
+    <button class="ghost" id="refetch" title="Fetch fresh data from the game server">Refetch</button>
+    <button class="ghost" id="export" title="Download your umas as a data.json compatible with UmaExtractor / hakuraku.moe">Export</button>
+    <button class="ghost" id="reload">Reload data</button>
+    <button class="ghost" id="restart" title="git pull + restart the Python server. Picks up the latest code automatically.">Update &amp; restart</button>
+  </div>
+</header>
+<div class="kofi-banner">
+  <a href="https://ko-fi.com/nighty33" target="_blank" class="kofi-btn">&#9749; SUPPORT ON</a>
+  <a href="https://ko-fi.com/nighty33" target="_blank" class="kofi-link">KO-FI</a>
+  <span class="kofi-txt">If this tool is useful to you, you can support development or drop a feature request over on <a href="https://ko-fi.com/nighty33" target="_blank">ko-fi.com/nighty33</a> &#9749; — completely optional and much appreciated.</span>
+  <span class="kofi-x" id="kofiBannerClose" title="Dismiss">&#10005;</span>
+</div>
+
+<!-- ===== SETUP MODAL ===== -->
+<div id="setupOverlay" class="setup-bg hide">
+ <div class="setup-wrap">
+  <div class="setup-card">
+    <h2 id="setupTitle">Set up Heir</h2>
+    <div class="sub" id="setupSub">Connect your account once. Your data stays local.</div>
+
+    <div class="setup-tabs" id="setupTabs">
+      <button class="setup-tab active" type="button" data-stab="extractor">Memory dump <small>recommended</small></button>
+      <button class="setup-tab" type="button" data-stab="frida">Frida + Steam</button>
+    </div>
+
+    <!-- Tab 1: UmaExtractor (recommended) -->
+    <div id="setupTabExtractor">
+      <p style="font-size:13px;color:var(--mut);margin:14px 0 10px">
+        Dump <code>data.json</code> with
+        <a href="https://github.com/xancia/UmaExtractor" target="_blank" style="color:var(--accent)">UmaExtractor</a>
+        (game open at <b>Veteran List</b>) and import it here. No Steam credentials, nothing leaves your PC.
+      </p>
+      <ol style="font-size:12.5px;color:var(--mut);margin:0 0 14px 18px;padding:0;line-height:1.7">
+        <li>Open Umamusume → <b>Enhance → List</b> (Veteran List screen).</li>
+        <li>Run <code>umaextractor.exe</code> → produces <code>data.json</code>.</li>
+        <li>Click the button below and pick the file.</li>
+      </ol>
+      <input type="file" id="setupExtractorFile" accept="application/json,.json" style="display:none">
+      <div class="setup-actions">
+        <button class="ghost" id="setupCancelExt" type="button">Cancel</button>
+        <button id="setupExtractorBtn" type="button">Import data.json</button>
+      </div>
+      <div class="muted" id="setupExtractorStatus" style="font-size:12px;margin-top:8px"></div>
+      <div style="margin-top:10px;font-size:11px;color:var(--mut);font-style:italic">
+        Note: UmaExtractor only reads your own umas. Friends' borrowable parents won't be available with this mode.
+      </div>
+    </div>
+
+    <!-- Tab 2: Frida + Steam (advanced) -->
+    <div id="setupTabFrida" class="hide">
+      <div id="setupSteps" style="margin-top:14px">
+        <div class="setup-step" id="step-capture"><div class="dot">1</div><div>Capture in-game credentials (Frida)</div></div>
+        <div class="setup-step" id="step-steam"><div class="dot">2</div><div>Steam login (generates session ticket)</div></div>
+        <div class="setup-step" id="step-fetch"><div class="dot">3</div><div>Fetch your umas + borrowable parents</div></div>
+      </div>
+
+      <div id="setupCaptureView">
+        <div style="font-size:12px;color:var(--mut);margin-top:12px">
+          Captures the in-game <code>auth_key</code> via Frida, then asks for your Steam credentials
+          to refresh the session ticket. Includes friends' borrowable parents.
+          <span style="color:var(--mut)">Steam credentials are stored locally, encrypted via Windows DPAPI
+          (bound to your Windows user on this PC — same scheme Chrome uses for saved passwords).</span>
+        </div>
+        <div class="setup-actions" style="margin-top:14px">
+          <button class="ghost" id="setupCancel" type="button">Cancel</button>
+          <button id="setupStartCapture" type="button">Open game &amp; capture</button>
+        </div>
+      </div>
+
+      <div id="setupSteamView" class="hide">
+        <div class="setup-form">
+          <label>Steam username
+            <input id="setupUser" autocomplete="username" placeholder="...">
+          </label>
+          <label>Steam password
+            <input id="setupPass" type="password" autocomplete="current-password" placeholder="...">
+          </label>
+          <label id="setupCodeWrap" class="hide">Steam Guard code (2FA)
+            <input id="setupCode" maxlength="5" placeholder="ABCDE">
+          </label>
+        </div>
+        <div class="setup-actions">
+          <button class="ghost" id="setupSkip" type="button">Cancel</button>
+          <button id="setupFetch" type="button">Fetch data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Done view (either path) -->
+    <div id="setupDoneView" class="hide">
+      <div class="setup-actions">
+        <button id="setupClose" type="button">Open dashboard</button>
+      </div>
+    </div>
+
+    <div class="setup-msg" id="setupMsg"></div>
+  </div>
+  <div class="setup-chibi-col">
+    <img class="setup-chibi" src="/static/oguri_chibi.gif" alt="">
+    <div class="setup-chibi-msg">Oguri is training wit</div>
+  </div>
+ </div>
+</div>
+<main>
+
+<!-- ===== INVENTORY ===== -->
+<section id="inv">
+  <div class="card">
+    <div class="row">
+      <input id="filter" placeholder="Filter by name, note, tag or owner..." style="flex:1;min-width:220px">
+      <label class="muted">min. white <input id="minWhite" type="number" min="0" value="0" style="width:64px"></label>
+      <button id="srcMine" type="button" class="ghost srcbtn" title="Show only your umas">Yours</button>
+      <button id="srcFriend" type="button" class="ghost srcbtn" title="Show only friends">Friends</button>
+      <select id="sortBy" class="ghost" title="sort">
+        <option value="affinity">Affinity</option>
+        <option value="g1">G1 Wins</option>
+        <option value="white">White Count</option>
+        <option value="score">Score</option>
+        <option value="newest">Newest First</option>
+      </select>
+      <span class="muted" id="invCount"></span>
+    </div>
+    <div class="target-pick-row">
+      <label class="muted" style="font-weight:600;color:var(--accent);white-space:nowrap">TARGET:</label>
+      <div class="target-pick-btn" id="invTargetBtn">
+        <img class="tp-portrait hide" id="invTargetPortrait" src="" alt="">
+        <span class="tp-name" id="invTargetName">Pick a target uma to score parent affinity...</span>
+        <span class="tp-arrow">▾</span>
+      </div>
+      <button id="invTargetClear" type="button" class="ghost hide">Clear</button>
+      <span class="muted" id="invTargetMsg" style="font-size:12px"></span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <b style="color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.05em">Inheritance Factors <span class="muted" style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(uma.moe style)</span></b>
+      <button class="ghost" id="clearF" style="font-size:11px;padding:3px 10px">Clear factors</button>
+    </div>
+    <div id="fcats"></div>
+    <datalist id="whitelist"></datalist>
+  </div>
+  <div id="invList"></div>
+</section>
+
+<!-- ===== AFFINITY (exact formula + WSB) ===== -->
+<section id="affinity" class="hide">
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div>
+        <b style="color:var(--accent);font-size:14px;letter-spacing:-0.01em">COMPATIBILITY <span style="font-weight:400;opacity:0.7">(相性)</span></b>
+        <small class="muted" style="margin-left:8px;font-size:11px">Exact in-game breeding affinity</small>
+      </div>
+      <div id="wsbStatus" style="font-size:11px"></div>
+    </div>
+    <div id="wsbCoverage" style="margin-top:4px;font-size:11px" class="muted"></div>
+  </div>
+
+  <!-- WSB info — collapsed by default -->
+  <div class="card" id="captureCard" style="padding:10px 16px;cursor:pointer" onclick="this.querySelector('.wsb-detail').classList.toggle('hide')">
+    <div class="row" style="align-items:center;gap:8px">
+      <span style="color:var(--ok);font-size:14px">&#10003;</span>
+      <span style="font-size:12.5px"><b>Race Bonus (WSB)</b> <span class="muted">— computed offline, exact match</span></span>
+      <span class="muted" style="margin-left:auto;font-size:10px">click to expand</span>
+    </div>
+    <div class="wsb-detail hide" style="margin-top:8px;color:var(--mut);font-size:12px;line-height:1.5;border-top:1px solid var(--line);padding-top:8px">
+      Race bonuses are calculated <b>offline</b> from your imported data:<br>
+      <code style="background:var(--panel2);padding:2px 8px;border-radius:4px;font-size:11px">
+        WSB(parent) = shared_races(parent, GP1) + shared_races(parent, GP2)
+      </code><br>
+      No game capture or DLL injection needed. Values match 1:1.
+    </div>
+  </div>
+
+  <!-- Target + ranking -->
+  <div class="card">
+    <div class="target-pick-row">
+      <label class="muted" style="font-weight:600;color:var(--accent);white-space:nowrap">TARGET:</label>
+      <div class="target-pick-btn" id="affTargetBtn">
+        <img class="tp-portrait hide" id="affTargetPortrait" src="" alt="">
+        <span class="tp-name" id="affTargetName">Pick a target trainee to rank parents...</span>
+        <span class="tp-arrow">▾</span>
+      </div>
+      <button id="affTargetClear" type="button" class="ghost hide">Clear</button>
+      <button id="affRefresh" type="button" class="ghost hide" title="Refresh race bonus data">Refresh</button>
+    </div>
+  </div>
+
+  <!-- Pair calculator -->
+  <div class="card">
+    <b style="color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.05em">Pair Calculator</b>
+    <small class="muted" style="margin-left:8px;font-size:11px">Select 2 parents from the ranking (click → P1 / → P2)</small>
+    <div class="row" style="margin-top:10px;gap:8px;align-items:center">
+      <span class="trayslot" id="affP1">P1: <i>—</i></span>
+      <span style="color:var(--mut);font-size:18px">×</span>
+      <span class="trayslot" id="affP2">P2: <i>—</i></span>
+      <button id="affCalcPair" type="button">Calculate pair</button>
+      <button id="affClearPair" type="button" class="ghost">Clear</button>
+    </div>
+    <div id="affPairResult" style="margin-top:12px"></div>
+  </div>
+
+  <!-- Ranking table -->
+  <div id="affRankList"></div>
+</section>
+
+<!-- ===== BREED ===== -->
+<section id="breed" class="hide">
+  <!-- Target & weights -->
+  <div class="card breed-top">
+    <div class="breed-header">
+      <span class="breed-label">BREED OPTIMIZER</span>
+      <span class="muted" style="font-size:11px">Find the best parent pairs by affinity + spark match</span>
+    </div>
+    <div class="breed-grid">
+      <div class="breed-field breed-target-field">
+        <label class="breed-fl">Target</label>
+        <div class="target-pick-btn" id="breedTargetBtn" style="padding:5px 10px">
+          <img class="tp-portrait hide" id="breedTargetPortrait" src="" alt="">
+          <span class="tp-name" id="breedTargetName">pick a target uma...</span>
+          <span class="tp-arrow">▾</span>
+        </div>
+        <input id="target" type="hidden">
+        <datalist id="targetlist"></datalist>
+      </div>
+      <div class="breed-field">
+        <label class="breed-fl">Affinity weight</label>
+        <input id="wAff" type="number" step="0.5" value="2" class="breed-input breed-num">
+      </div>
+      <div class="breed-field">
+        <label class="breed-fl">Spark weight</label>
+        <input id="wSpark" type="number" step="0.5" value="1" class="breed-input breed-num">
+      </div>
+      <div class="breed-field">
+        <label class="breed-fl">Parent pool</label>
+        <select id="poolTag" class="breed-input"><option value="">— all —</option></select>
+      </div>
+      <button id="run" class="breed-go">Compute breeding</button>
+    </div>
+  </div>
+
+  <!-- Prepare for + wanted skills -->
+  <div class="card breed-prep">
+    <div class="breed-prep-row">
+      <span class="breed-prep-label">PREPARE FOR</span>
+      <select id="breedStyle" class="breed-sel">
+        <option value="">— running style —</option>
+        <option value="Front Runner">Front Runner</option>
+        <option value="Pace Chaser">Pace Chaser</option>
+        <option value="Late Surger">Late Surger</option>
+        <option value="End Closer">End Closer</option>
+      </select>
+      <select id="breedDistance" class="breed-sel">
+        <option value="">— distance —</option>
+        <option value="Sprint">Sprint</option>
+        <option value="Mile">Mile</option>
+        <option value="Medium">Medium</option>
+        <option value="Long">Long</option>
+        <option value="Dirt">Dirt</option>
+      </select>
+      <button id="breedApplyStyle" type="button" class="ghost" title="Add matching white skills to the wanted list" style="font-size:11px;padding:5px 12px">Apply</button>
+      <span id="breedActStatus" style="font-size:10px;margin-left:6px"></span>
+      <span class="muted" id="breedStyleMsg" style="font-size:11px"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin:4px 0 2px;flex-wrap:wrap">
+      <label style="font-size:11px;color:var(--mut);display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="checkbox" id="breedStrict"> Strict: hide skills below
+        <input id="breedStrictPct" type="number" value="60" min="0" max="100" style="width:44px;font-size:11px;padding:2px 4px;background:var(--card);border:1px solid var(--border);color:var(--fg);border-radius:4px" disabled>%
+      </label>
+      <button id="breedSyncTT" type="button" class="ghost" style="font-size:10px;padding:3px 8px;margin-left:auto" title="Fetch latest skill data from TTAnalyzer and save locally">Sync TTAnalyzer</button>
+      <span id="breedSyncMsg" style="font-size:10px;color:var(--mut)"></span>
+    </div>
+    <div class="breed-want-row">
+      <input id="wantIn" list="sparklist" placeholder="add wanted spark (stat / aptitude / skill) and press Enter" class="breed-input" style="flex:1;min-width:240px">
+      <datalist id="sparklist"></datalist>
+    </div>
+    <div id="wantChips" style="margin-top:6px"></div>
+    <p class="muted" style="font-size:10.5px;margin:6px 0 0">Wanted chips bias parents with matching white skills.</p>
+  </div>
+
+  <!-- Manual pairing tip -->
+  <div class="card breed-manual">
+    <b>Manual pairing</b>
+    <span class="muted">Use <b>Inventory</b> filters → <b>→ P1</b> / <b>→ P2</b> → <b>Show pair</b> in the tray.</span>
+  </div>
+
+  <!-- Results -->
+  <div class="breed-results">
+    <div class="breed-col">
+      <div class="breed-col-header">Both your parents</div>
+      <div id="ownRes"></div>
+    </div>
+    <div class="breed-col">
+      <div class="breed-col-header">Yours + borrowed (rental)</div>
+      <div id="rentRes"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================================================
+     TEAM TRIALS PANELS (merged from TTAnalyzer dashboard)
+     ============================================================ -->
+
+<!-- ──────── TT OVERVIEW ──────── -->
+<section id="tt-overview" class="hide" style="padding:16px 20px;max-width:1300px;margin:0 auto">
+  <div class="tt-hero">
+    <span class="tt-hero-title">Team Trials Analyzer</span>
+    <div class="tt-hero-stats">
+      <span class="tt-stat-chip tt-accent" id="tt-stat-trials"><b>0</b>&nbsp;trials</span>
+      <span class="tt-stat-chip" id="tt-stat-bonus" style="display:none"></span>
+      <span class="tt-stat-chip" id="tt-stat-rows"><b>0</b>&nbsp;race entries</span>
+    </div>
+    <div class="tt-hero-actions">
+      <span id="tt-capture-status" class="tt-capture-badge" style="display:none"></span>
+      <button id="tt-capture-btn" class="btn-capture" onclick="ttToggleCapture()">▶ Start capture</button>
+      <button class="ghost" onclick="ttProcessCaptures()" title="Process already-captured trials" style="font-size:11px;padding:6px 12px">↻ Process</button>
+      <button class="ghost" onclick="ttLoad()" style="font-size:11px;padding:6px 12px">⟳ Refresh</button>
+    </div>
+  </div>
+
+  <div class="tt-card">
+    <div class="tt-card-header">
+      <h2 class="tt-card-title">Your status</h2>
+      <span class="tt-card-sub">auto-detected per player</span>
+    </div>
+    <div id="tt-player-grid" class="tt-player-grid"></div>
+  </div>
+
+  <div class="tt-card">
+    <div class="tt-card-header">
+      <h2 class="tt-card-title">Race Analysis</h2>
+      <span class="tt-card-sub">click any row for the full skill breakdown</span>
+      <div class="tt-card-tools">
+        <span class="tt-status-line">Show:</span>
+        <select id="tt-filter-show" class="tt-filter-input" style="width:auto;padding-right:22px" oninput="ttRender()" title="How many recent trials to show">
+          <option value="0" selected>All</option>
+          <option value="10">Last 10</option>
+          <option value="20">Last 20</option>
+          <option value="30">Last 30</option>
+          <option value="50">Last 50</option>
+        </select>
+        <span class="tt-status-line" style="margin-left:8px">Act %:</span>
+        <input type="number" id="tt-filter-act-min" min="0" max="100" value="0" step="5" class="tt-filter-input" placeholder="min" title="Min activation %" oninput="ttRender()">
+        <span class="tt-status-line" style="opacity:0.5">—</span>
+        <input type="number" id="tt-filter-act-max" min="0" max="100" value="100" step="5" class="tt-filter-input" placeholder="max" title="Max activation %" oninput="ttRender()">
+        <span id="tt-filter-count" class="tt-status-line"></span>
+      </div>
+    </div>
+    <div class="tt-table-wrap" id="tt-race-table-wrap">
+      <table class="tt-race" id="tt-race-analysis">
+        <thead><tr id="tt-ra-head"></tr></thead>
+        <tbody id="tt-ra-body"></tbody>
+      </table>
+    </div>
+    <div id="tt-skill-area" class="tt-detail-panel" style="display:none"></div>
+  </div>
+</section>
+
+<!-- ──────── TT SKILL PLANNER ──────── -->
+<section id="tt-planner" class="hide" style="padding:16px 20px;max-width:1300px;margin:0 auto">
+  <div class="tt-card">
+    <div class="tt-card-header">
+      <h2 class="tt-card-title">Skill Planner</h2>
+      <span class="tt-card-sub">end-of-career SP shopping list for Team Trials</span>
+    </div>
+    <div class="tt-form-row">
+      <div class="tt-form-field">
+        <div class="tt-field-label">Trainee</div>
+        <select id="tt-planner-chara" class="tt-select"><option value="">Pick a trainee...</option></select>
+      </div>
+      <div class="tt-form-field">
+        <div class="tt-field-label">Distance</div>
+        <select id="tt-planner-dist" class="tt-select"><option value="">Distance...</option></select>
+      </div>
+      <div class="tt-form-field">
+        <div class="tt-field-label">Style</div>
+        <select id="tt-planner-style" class="tt-select"><option value="">Style...</option></select>
+      </div>
+      <button class="tt-btn-primary" onclick="ttRunPlanner()">PLAN</button>
+      <span id="tt-planner-status" class="tt-status-line"></span>
+    </div>
+    <div id="tt-planner-result" style="margin-top:18px"></div>
+  </div>
+</section>
+
+<!-- ──────── TT SKILL LOOKUP ──────── -->
+<section id="tt-lookup" class="hide" style="padding:16px 20px;max-width:1300px;margin:0 auto">
+  <div class="tt-card">
+    <div class="tt-card-header">
+      <h2 class="tt-card-title">Skill Lookup</h2>
+      <span class="tt-card-sub">average activation % of any skill across every owning uma</span>
+    </div>
+    <div class="tt-form-row">
+      <div class="tt-form-field" style="flex:2">
+        <div class="tt-field-label">Skill name</div>
+        <input id="tt-sl-input" list="tt-sl-list" class="tt-input" placeholder="Type a skill name (e.g. Fast-Paced, Sympathy, Front Runner Savvy)" onkeydown="if(event.key==='Enter')ttRunSkillLookup()">
+        <datalist id="tt-sl-list"></datalist>
+      </div>
+      <button class="tt-btn-primary" onclick="ttRunSkillLookup()">LOOK UP</button>
+      <span id="tt-sl-status" class="tt-status-line"></span>
+    </div>
+    <div id="tt-sl-result" style="margin-top:18px"></div>
+  </div>
+</section>
+
+<!-- ──────── TT TRACK & CONDITION ──────── -->
+<section id="tt-stadium" class="hide" style="padding:16px 20px;max-width:1300px;margin:0 auto">
+  <div class="tt-card">
+    <div class="tt-card-header">
+      <h2 class="tt-card-title">Track &amp; Condition</h2>
+      <span class="tt-card-sub">tracks, weather and starting gates from your trials</span>
+      <div class="tt-card-tools">
+        <span id="tt-stadium-count" class="tt-status-line"></span>
+        <input type="file" id="tt-stadium-upload" accept=".csv" style="display:none" onchange="ttImportStadiumCsv(this)">
+        <button class="ghost" onclick="document.getElementById('tt-stadium-upload').click()" title="Import a stadium_races.csv" style="padding:5px 11px;font-size:11px">⬆ IMPORT CSV</button>
+        <a id="tt-stadium-csv" class="ghost" href="/api/stadium/csv" download style="padding:5px 11px;font-size:11px;text-decoration:none;display:inline-block">⬇ CSV</a>
+      </div>
+    </div>
+    <div id="tt-stadium-cats" class="tt-category-tabs"></div>
+    <div id="tt-stadium-summary" class="tt-summary-grid"></div>
+
+    <div class="tt-card-header" style="margin-top:8px">
+      <h2 class="tt-card-title" style="font-size:14px">All rounds</h2>
+      <span class="tt-card-sub">filter by any column</span>
+      <div class="tt-card-tools">
+        <input id="tt-stadium-search" class="tt-filter-input" style="width:180px" placeholder="search track/weather…" oninput="ttRenderStadiumTable()">
+      </div>
+    </div>
+    <div class="tt-table-wrap">
+      <table class="tt-stadium" id="tt-stadium-table">
+        <thead><tr id="tt-stadium-head"></tr></thead>
+        <tbody id="tt-stadium-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CHARACTER PICKER ===== -->
+<div id="charaPickerBg" class="chara-picker-bg hide">
+  <div class="chara-picker-card">
+    <div class="chara-picker-header">
+      <span>Select Character</span>
+      <button id="charaPickerClose">✕</button>
+    </div>
+    <input class="chara-picker-search" id="charaPickerSearch" placeholder="Search by name...">
+    <div class="chara-picker-grid" id="charaPickerGrid"></div>
+  </div>
+</div>
+
+<div id="tray" class="hide">
+  <span class="muted">Breeding tray:</span>
+  <input id="trayTarget" list="targetlist" placeholder="target uma..." style="width:170px">
+  <span class="trayslot" id="trayP1">P1: <i>—</i></span>
+  <span class="trayslot" id="trayP2">P2: <i>—</i></span>
+  <button id="trayGo">Show pair</button>
+  <button class="ghost" id="trayClear">clear</button>
+  <span class="muted" id="trayMsg"></span>
+</div>
+<div id="detail" class="overlay hide"><div class="modal" id="detailBody"></div></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let DATA=null, WANT=[], CUR_TARGET=null, ACT_RATES=null;
+const SELP={p1:null,p2:null};
+const TYPE_ORDER=['blue','pink','green','white'];
+const TYPE_LABEL={blue:'Blue (stats)',pink:'Pink (aptitude)',green:'Green (unique)',white:'White (skills/races)'};
+
+async function load(){
+  DATA=await (await fetch('/api/data')).json();
+  $('#src').textContent=(DATA.source?'source: '+DATA.source.split(/[\\/]/).pop():'no data')
+      +`  |  ${DATA.mine.length} yours, ${DATA.rentable.length} borrowable`;
+  const stats=['Speed','Stamina','Power','Guts','Wit'];
+  const all=[...stats,...DATA.skills.pink,...DATA.skills.green,...DATA.skills.white];
+  $('#sparklist').innerHTML=all.map(s=>`<option value="${esc(s)}">`).join('');
+  $('#whitelist').innerHTML=(DATA.skills.white||[]).map(s=>`<option value="${esc(s)}">`).join('');
+  $('#targetlist').innerHTML=DATA.targets.map(t=>`<option value="${esc(t.name)}">`).join('');
+  const userTags=new Set(); allUmas().forEach(u=>(u.tags||[]).forEach(t=>userTags.add(t)));
+  const ut=[...userTags].sort();
+  $('#poolTag').innerHTML='<option value="">— parents: all —</option>'+ut.map(t=>`<option value="${esc(t)}">only tag: ${esc(t)}</option>`).join('');
+  renderFcats(); renderInv();
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+// ---- spark pills (uma.moe style) ----
+let _HI_NAMES = new Set();
+function _rebuildHighlight(){
+  // Names active in any of the factor filters + any factor name that matches
+  // the text search (substring). Refreshed at the start of every renderInv.
+  _HI_NAMES = new Set();
+  if(typeof FILTERS !== 'undefined'){
+    for(const k of Object.keys(FILTERS)){
+      for(const f of FILTERS[k]){ if(f.name) _HI_NAMES.add(f.name); }
+    }
+  }
+  const q = ($('#filter')?.value || '').trim();
+  if(q && q.length >= 3 && typeof DATA !== 'undefined' && DATA){
+    const ql = q.toLowerCase();
+    for(const pool of [DATA.skills?.white, DATA.skills?.pink, DATA.skills?.green]){
+      if(!pool) continue;
+      for(const n of pool){ if(n.toLowerCase().includes(ql)) _HI_NAMES.add(n); }
+    }
+  }
+}
+let _BREED_HI = new Set();  // exact skill names (lowercase) to highlight
+let _BREED_HI_KW = [];      // keyword substrings to highlight (from style+distance)
+function _isBreedMatch(name){
+  if(!_BREED_HI.size && !_BREED_HI_KW.length) return false;
+  const nl = name.toLowerCase();
+  if(_BREED_HI.has(nl)) return true;
+  if(_BREED_HI_KW.length && _BREED_HI_KW.some(k=>nl.includes(k))) return true;
+  return false;
+}
+function pill(name,stars,type,pct,you){
+  const st=`<span class="st st-${type}">${stars}★</span>`;
+  const v=(pct!=null)?`<span class="val">${pct}%</span>`:'';
+  const y=you?`<span class="you">(${you}★)</span>`:'';
+  const hi = _HI_NAMES.has(name) ? ' pl-hi' : '';
+  const breedHi = (!hi && _isBreedMatch(name)) ? ' pl-breed' : '';
+  return `<span class="pl pl-${type}${hi}${breedHi}">${st}<span class="nm">${esc(name)}</span>${v}${y}</span>`;
+}
+function _displayType(t){ return t==='scenario' ? 'white' : t; }
+function ownChips(sparks){
+  return (sparks||[]).filter(s=>s.type!=='other')
+    .slice().sort((a,b)=>TYPE_ORDER.indexOf(_displayType(a.type))-TYPE_ORDER.indexOf(_displayType(b.type))||b.stars-a.stars)
+    .slice(0,14).map(s=>pill(s.name,s.stars,_displayType(s.type))).join('');
+}
+
+function dtags(u){return (u.src==='friend'?['friend']:[]).concat(u.tags||[]);}
+function allUmas(){return DATA.mine.concat(DATA.rentable||[]);}
+// Composite key for TARGET_AFFINITY/TARGET_BREAKDOWN — trained_chara_id is
+// per-account, so mine and rentable can collide. Prefix with m/f.
+function tkey(u){return (u.src==='friend'?'f':'m')+u.trained_chara_id;}
+
+// ===== factor filters (uma.moe style) =====
+const CATS=[
+  {k:'blue', lab:'Blue Factors (Stats)',    type:'blue', max:9, search:false, sc:'stars-b'},
+  {k:'pink', lab:'Pink Factors (Aptitude)', type:'pink', max:9, search:false, sc:'stars-p'},
+  {k:'green',lab:'Green Factors (Unique)',  type:'green',max:3, search:false, sc:'stars-g'},
+  {k:'whiteReq', lab:'White Required (Skills/Races)', type:'white', max:9, search:true, sc:'stars-w'},
+  {k:'whitePref',lab:'Preferred White (sorts by match count)', type:'white', max:9, search:true, sc:'stars-w'},
+  {k:'lineage',  lab:'Lineage White (sorts by depth factor 1.1^n)', type:'white', max:9, search:true, sc:'stars-w'},
+];
+const FILTERS={blue:[],pink:[],green:[],whiteReq:[],whitePref:[],lineage:[]};
+function catOpts(k){
+  if(k==='blue')return ['Speed','Stamina','Power','Guts','Wit'];
+  if(k==='pink')return DATA.skills.pink||[];
+  if(k==='green')return DATA.skills.green||[];
+  return DATA.skills.white||[];
+}
+function starSel(cls,val,max,which){
+  let o=''; for(let i=1;i<=max;i++)o+=`<option value="${i}" ${i==val?'selected':''}>${i}★</option>`;
+  return `<select class="${cls} ${which}">${o}</select>`;
+}
+function renderFcats(){
+  $('#fcats').innerHTML=CATS.map(c=>{
+    const rows=FILTERS[c.k].map((f,i)=>{
+      const namePart=c.search
+        ?`<input class="fname" list="whitelist" placeholder="search..." value="${esc(f.name||'')}" style="width:240px">`
+        :`<select class="fname" style="width:200px"><option value="">Any</option>${catOpts(c.k).map(n=>`<option ${n===f.name?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+      return `<div class="frow" data-k="${c.k}" data-i="${i}">${namePart}
+        ${starSel(c.sc,f.min,c.max,'fmin')}<span class="muted">–</span>${starSel(c.sc,f.max,c.max,'fmax')}
+        <span class="x" title="remove">✕</span></div>`;
+    }).join('');
+    return `<div class="fcat"><div class="fhead"><span class="lab">${c.lab}</span>
+      <button class="ghost addf" data-k="${c.k}">+ Add</button></div><div class="frows">${rows}</div></div>`;
+  }).join('');
+}
+// Filters compare against the TOTAL star value for that factor (the big
+// number shown on each chip = own + the 2 direct parents). So a filter of
+// 5-9 means the combined lineage contribution falls in that range, matching
+// what the user sees on the chip.
+function aggOf(u,type){return (u.agg||[]).filter(a=>_displayType(a.type)===type);}
+function aggMatch(items,f){return items.some(a=>(!f.name||a.name===f.name)&&(a.total||0)>=f.min&&(a.total||0)<=f.max);}
+function matchUma(u){
+  for(const f of FILTERS.blue) if(!aggMatch(aggOf(u,'blue'),f))return null;
+  for(const f of FILTERS.pink) if(!aggMatch(aggOf(u,'pink'),f))return null;
+  for(const f of FILTERS.green)if(!aggMatch(aggOf(u,'green'),f))return null;
+  const wh=aggOf(u,'white');
+  for(const f of FILTERS.whiteReq) if(!aggMatch(wh,f))return null;
+  let pref=0;
+  for(const f of FILTERS.whitePref) pref+=wh.filter(a=>(!f.name||a.name===f.name)&&a.total>=f.min&&a.total<=f.max).length;
+  let lin=0;
+  for(const f of FILTERS.lineage)(u.lineage_white||[]).forEach(s=>{
+    if((!f.name||s.name===f.name)&&s.stars>=f.min&&s.stars<=f.max) lin+=Math.pow(1.1,s.depth);});
+  return {pref,lin:Math.round(lin*100)/100};
+}
+
+// ---- uma.moe-style result card ----
+function factorGrid(u){
+  const agg=u.agg||[];
+  return TYPE_ORDER.map(t=>{
+    // scenario sparks (TS Climax, MANT, etc.) are shown under white
+    const items=agg.filter(a=>_displayType(a.type)===t);
+    if(!items.length)return '';
+    return `<div class="fg fg-${t}">${items.map(a=>pill(a.name,a.total,t,a.pct,a.own)).join('')}</div>`;
+  }).join('');
+}
+function portraitTree(u){
+  const ph=u.parents||[];
+  const tBd = TARGET_CARD ? TARGET_BREAKDOWN[tkey(u)] : null;
+  // When target is set: show exact affinity (CR + WSB)
+  const mainHeart = tBd ? tBd.total : ph.reduce((s,p)=>s+(p.stars||0),0);
+  const heartColor = tBd ? 'var(--accent)' : 'var(--pink)';
+  const wsbTag = tBd && tBd.wsb > 0
+    ? `<div style="font-size:10px;color:var(--ok)">+${tBd.wsb} race</div>` : '';
+  const nodeHeart = (p)=>{
+    if(!tBd) return `<span class="ph2">♥ ${p.stars}</span>`;
+    const n = (tBd.nodes||[]).find(n=>n.card_id===p.card_id);
+    const val = n ? n.total : 0;
+    return `<span class="ph2" style="color:var(--accent)">♥ ${val}</span>`;
+  };
+  return `<div class="ptcol">
+    <div class="pcell"><img class="rport" src="/img/${u.card_id}" onerror="this.style.visibility='hidden'">
+      <div class="ph2" style="color:${heartColor}">♥ ${mainHeart}</div>${wsbTag}</div>
+    <div class="pconn">▼</div>
+    <div class="prow">${ph.map(p=>`<div class="pcell">
+      <img class="rport sm" src="/img/${p.card_id}" onerror="this.style.visibility='hidden'">
+      <div class="nm">${esc(p.name)}</div>
+      ${nodeHeart(p)}</div>`).join('')}</div>
+  </div>`;
+}
+function affinityOf(u){ return (u.parents||[]).reduce((s,p)=>s+(p.stars||0),0); }
+function umaCard(u){
+  const owner=u.src==='friend'?`<span class="friendb">friend</span> <small>${esc(u.owner_name||'')}</small>`:`<small>${(u.fans||0).toLocaleString()} fans</small>`;
+  const mb=(u._pref||u._lin)?`<span class="matchb">${u._pref?'pref '+u._pref:''}${u._pref&&u._lin?' · ':''}${u._lin?'lin '+u._lin:''}</span>`:'';
+  const tScore = TARGET_AFFINITY[tkey(u)];
+  const tBd = TARGET_BREAKDOWN[tkey(u)];
+  const targeted = TARGET_CARD && tScore!=null;
+  const affVal = targeted ? tScore : affinityOf(u);
+  const affLabel = targeted ? 'AFFINITY' : 'LINEAGE';
+  const affTip = targeted && tBd
+    ? `CR: ${tBd.cr} (base ${tBd.cr_base} + GP bonus ${tBd.cr_gp})` +
+      ` | WSB: +${tBd.wsb}` +
+      ` | Total: ${tBd.total}`
+    : 'Sum of parent spark stars (lineage potential). Pick a target to see exact affinity.';
+  return `<div class="ucard" data-id="${u.trained_chara_id}">
+    <div class="uhead">
+      <div><span class="uname">${esc(u.name)}</span> ${owner} ${mb}</div>
+      <div class="ustats">
+        <span class="us" title="${esc(affTip)}"><b class="c-aff">${affVal}</b><i>${affLabel}</i></span>
+        <span class="us"><b class="c-g1">${u.g1||0}</b><i>G1 WINS</i></span>
+        <span class="us"><b class="c-wh">${u.white_count||0}</b><i>WHITE</i></span>
+        <span class="us"><b class="c-sc">${(u.rank_score||0).toLocaleString()}</b><i>SCORE</i></span>
+        <span class="rankb" title="Trained grade (R${u.rank??'?'}). Score: ${(u.rank_score||0).toLocaleString()}">${u.rank_label||('R'+(u.rank??'?'))}</span>
+      </div>
+    </div>
+    <div class="dmain">${portraitTree(u)}<div class="fgrid">${factorGrid(u)}</div></div>
+    <div class="ufoot">
+      <input class="note-in" placeholder="note for this uma..." value="${esc(u.note||'')}">
+      <input class="tag-in" placeholder="tags: keep, speed, sell..." value="${esc((u.tags||[]).join(', '))}">
+      <button class="ghost bp bp1" data-id="${u.trained_chara_id}">→ P1</button>
+      <button class="ghost bp bp2" data-id="${u.trained_chara_id}">→ P2</button>
+      <button class="ghost bviewraces" data-id="${u.trained_chara_id}">View races</button>
+      <button class="ghost bfilter" data-name="${esc(u.name)}">Show all</button>
+    </div>
+    <div class="races-panel hide" data-id="${u.trained_chara_id}"></div>
+  </div>`;
+}
+function saveCardField(e){
+  const card=e.target.closest('.ucard'); const id=+card.dataset.id;
+  const note=card.querySelector('.note-in').value.trim();
+  const tags=card.querySelector('.tag-in').value.split(',').map(s=>s.trim()).filter(Boolean);
+  fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({trained_chara_id:id,note,tags})});
+  const u=allUmas().find(x=>x.trained_chara_id===id); if(u){u.note=note;u.tags=tags;}
+  refreshTagSelects();
+}
+const LIST_LIMIT=50;
+let SRC_FILTER=''; // '' = all, 'mine' = yours only, 'friend' = friends only
+let TARGET_AFFINITY={}, TARGET_BREAKDOWN={}, TARGET_CARD=null, TARGET_EXCLUDED=new Set();
+let _targetCardId=null, _targetCardIdForPortrait=null, _targetWins=[];
+
+async function fetchTargetAffinity(cardId, wins){
+  TARGET_CARD = cardId;
+  TARGET_AFFINITY = {};
+  TARGET_BREAKDOWN = {};
+  TARGET_EXCLUDED = new Set();
+  _targetWins = wins || [];
+  const r = await fetch('/api/target_affinity',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({target:cardId, target_wins: _targetWins})});
+  if(!r.ok){ $('#invTargetMsg').textContent='Error'; return; }
+  const data = await r.json();
+  TARGET_AFFINITY = data.scores || {};
+  TARGET_BREAKDOWN = data.breakdown || {};
+  TARGET_EXCLUDED = new Set(data.excluded || []);
+  const exMsg = TARGET_EXCLUDED.size ? ` (${TARGET_EXCLUDED.size} hidden — same character)` : '';
+  $('#invTargetMsg').textContent=`${Object.keys(TARGET_AFFINITY).length} candidates${exMsg}`;
+}
+
+function setTargetCard(cardId, name){
+  _targetCardId = cardId;
+  _targetCardIdForPortrait = cardId;
+  const portrait = $('#invTargetPortrait');
+  portrait.src = `/img/${cardId}`;
+  portrait.onerror = ()=>portrait.classList.add('hide');
+  portrait.onload  = ()=>portrait.classList.remove('hide');
+  portrait.classList.remove('hide');
+  $('#invTargetName').textContent = name;
+  $('#invTargetName').classList.add('picked');
+  $('#invTargetClear').classList.remove('hide');
+}
+
+function clearTarget(){
+  _targetCardId = null;
+  TARGET_CARD = null;
+  TARGET_AFFINITY = {};
+  TARGET_BREAKDOWN = {};
+  TARGET_EXCLUDED = new Set();
+  const portrait = $('#invTargetPortrait');
+  portrait.classList.add('hide');
+  portrait.src = '';
+  $('#invTargetName').textContent = 'Pick a target uma to score parent affinity...';
+  $('#invTargetName').classList.remove('picked');
+  $('#invTargetClear').classList.add('hide');
+  $('#invTargetMsg').textContent = '';
+}
+
+$('#invTargetClear').addEventListener('click', ()=>{ clearTarget(); renderInv(); });
+
+// ---- Character picker ----
+let _pickerOpen = false;
+
+function buildCharaPicker(){
+  const grid = $('#charaPickerGrid');
+  const query = ($('#charaPickerSearch').value||'').toLowerCase();
+  const targets = (DATA.targets||[]).filter(t=> !query || t.name.toLowerCase().includes(query));
+  grid.innerHTML = targets.map(t=>`
+    <div class="chara-pick-item" data-cid="${t.card_id}" data-name="${esc(t.name)}">
+      <img src="/img/${t.card_id}" alt="${esc(t.name)}" onerror="this.style.visibility='hidden'">
+      <div class="cpname">${esc(t.name)}</div>
+    </div>`).join('');
+  grid.querySelectorAll('.chara-pick-item').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const cid = +el.dataset.cid;
+      const name = el.dataset.name;
+      closeCharaPicker();
+      if(_affPickerCb){
+        const cb = _affPickerCb; _affPickerCb = null;
+        await cb(cid, name);
+      } else {
+        // Default: inventory target
+        setTargetCard(cid, name);
+        await fetchTargetAffinity(cid, []);
+        renderInv();
+      }
+    });
+  });
+}
+
+function openCharaPicker(){
+  _pickerOpen = true;
+  $('#charaPickerSearch').value = '';
+  $('#charaPickerBg').classList.remove('hide');
+  buildCharaPicker();
+  setTimeout(()=>$('#charaPickerSearch').focus(), 50);
+}
+
+function closeCharaPicker(){
+  _pickerOpen = false;
+  $('#charaPickerBg').classList.add('hide');
+}
+
+$('#invTargetBtn').addEventListener('click', ()=>{ _affPickerCb = null; openCharaPicker(); });
+$('#charaPickerClose').addEventListener('click', closeCharaPicker);
+$('#charaPickerBg').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeCharaPicker(); });
+$('#charaPickerSearch').addEventListener('input', buildCharaPicker);
+$('#srcMine').onclick=(e)=>{ e.preventDefault(); const sy=window.scrollY; SRC_FILTER=SRC_FILTER==='mine'?'':'mine'; updateSrcBtns(); renderInv(); window.scrollTo(0, sy); };
+$('#srcFriend').onclick=(e)=>{ e.preventDefault(); const sy=window.scrollY; SRC_FILTER=SRC_FILTER==='friend'?'':'friend'; updateSrcBtns(); renderInv(); window.scrollTo(0, sy); };
+function updateSrcBtns(){
+  $('#srcMine').classList.toggle('active', SRC_FILTER==='mine');
+  $('#srcFriend').classList.toggle('active', SRC_FILTER==='friend');
+}
+function renderInv(){
+  _rebuildHighlight();
+  const f=$('#filter').value.toLowerCase().trim();
+  const minW=+($('#minWhite').value||0), sortBy=$('#sortBy').value;
+  let rows=[];
+  allUmas().forEach(u=>{
+    if(SRC_FILTER==='mine'&&u.src==='friend')return;
+    if(SRC_FILTER==='friend'&&u.src!=='friend')return;
+    if(TARGET_CARD && TARGET_EXCLUDED.has(u.trained_chara_id)) return;
+    if((u.white_count||0)<minW)return;
+
+    if(f){const hay=(u.name+' '+(u.note||'')+' '+dtags(u).join(' ')+' '+(u.owner_name||'')).toLowerCase();
+          if(!hay.includes(f))return;}
+    const m=matchUma(u); if(!m)return;
+    u._pref=m.pref; u._lin=m.lin; rows.push(u);
+  });
+  const targetSort = (a,b)=>(TARGET_AFFINITY[tkey(b)]||0)-(TARGET_AFFINITY[tkey(a)]||0);
+  // Active named factor filters, IN ORDER (Blue -> Pink -> Green -> White-Req
+  // -> Preferred -> Lineage). When any are active, sort by their TOTAL stars
+  // (the chip's big number) descending. First filter is primary key, second
+  // is tiebreaker, and so on.
+  const filterOrder = [];
+  for(const k of ['blue','pink','green','whiteReq','whitePref','lineage']){
+    for(const f of (FILTERS[k]||[])){
+      if(f.name && !filterOrder.includes(f.name)) filterOrder.push(f.name);
+    }
+  }
+  const filterSort = (a,b)=>{
+    for(const n of filterOrder){
+      const va = (a.agg||[]).find(x=>x.name===n)?.total || 0;
+      const vb = (b.agg||[]).find(x=>x.name===n)?.total || 0;
+      if(va !== vb) return vb - va;
+    }
+    return 0;
+  };
+  // Only auto-rank by target affinity when the sort dropdown is on its
+  // default ("affinity"). If the user picked a specific sort (white, rank,
+  // newest, score, name), respect it.
+  // Sort dropdown options (all descending). "white" uses white_count
+  // (the badge number) with white_stars as tiebreaker.
+  const base=(a,b)=> sortBy==='g1'?(b.g1||0)-(a.g1||0)
+                  : sortBy==='white'?((b.white_count||0)-(a.white_count||0)) || ((b.white_stars||0)-(a.white_stars||0))
+                  : sortBy==='affinity'?affinityOf(b)-affinityOf(a)
+                  : sortBy==='score'?(b.rank_score||0)-(a.rank_score||0)
+                  : sortBy==='newest'?(b.trained_chara_id||0)-(a.trained_chara_id||0)
+                  : 0;
+  // Sort dropdown ALWAYS wins. Filter-derived sort kicks in only when the
+  // dropdown is on its default (affinity) AND no target is picked (target
+  // sort also only applies on default sort).
+  if(TARGET_CARD && sortBy==='affinity'){
+    rows.sort((a,b)=>targetSort(a,b)||(b._lin-a._lin)||(b._pref-a._pref)||base(a,b));
+  } else if(filterOrder.length && sortBy==='affinity'){
+    rows.sort((a,b)=>filterSort(a,b)||(b._lin-a._lin)||(b._pref-a._pref)||base(a,b));
+  } else {
+    rows.sort((a,b)=>base(a,b)||(b._lin-a._lin)||(b._pref-a._pref));
+  }
+  const nMine=rows.filter(u=>u.src!=='friend').length, nFr=rows.length-nMine;
+  const shown=rows.slice(0,LIST_LIMIT);
+  $('#invCount').textContent=`${rows.length} umas (${nMine} yours, ${nFr} friends)`+(rows.length>LIST_LIMIT?` — showing ${LIST_LIMIT}`:'');
+  $('#invList').innerHTML=shown.map(umaCard).join('');
+  $$('#invList .note-in,#invList .tag-in').forEach(el=>el.addEventListener('blur',saveCardField));
+  $$('#invList .bfilter').forEach(b=>b.onclick=()=>{$('#filter').value=b.dataset.name;renderInv();});
+  $$('#invList .bp1').forEach(b=>b.onclick=()=>setParent(1,allUmas().find(x=>x.trained_chara_id===+b.dataset.id)));
+  $$('#invList .bp2').forEach(b=>b.onclick=()=>setParent(2,allUmas().find(x=>x.trained_chara_id===+b.dataset.id)));
+  $$('#invList .bviewraces').forEach(b=>b.onclick=()=>toggleRaces(+b.dataset.id, b));
+}
+
+const _RACES_CACHE = {};
+async function toggleRaces(id, btn){
+  const panel = document.querySelector(`#invList .races-panel[data-id="${id}"]`);
+  if(!panel) return;
+  if(!panel.classList.contains('hide')){
+    panel.classList.add('hide');
+    btn.textContent = 'View races';
+    return;
+  }
+  if(!_RACES_CACHE[id]){
+    btn.textContent = 'Loading...'; btn.disabled = true;
+    try{
+      const r = await fetch(`/api/uma/${id}/races`);
+      _RACES_CACHE[id] = await r.json();
+    } finally { btn.disabled = false; }
+  }
+  const data = _RACES_CACHE[id];
+  const groups = {titles:[], g1:[], g2:[], g3:[], other:[]};
+  for(const r of (data.races||[])){
+    const k = r.type===0?'titles': r.type===1?'g1': r.type===2?'g2': r.type===3?'g3':'other';
+    groups[k].push(r);
+  }
+  const sect = (label, arr, cls)=>arr.length
+    ? `<div class="rsec"><b>${label} (${arr.length})</b>${arr.map(r=>`<span class="rname ${cls}">${esc(r.name)}</span>`).join('')}</div>`
+    : '';
+  panel.innerHTML = sect('Titles', groups.titles, 'title')
+                  + sect('G1', groups.g1, 'g1')
+                  + sect('G2', groups.g2, 'g2')
+                  + sect('G3', groups.g3, 'g3')
+                  + sect('Other', groups.other, '');
+  panel.classList.remove('hide');
+  btn.textContent = `Hide races (${(data.races||[]).length})`;
+}
+function setParent(slot,u){ if(!u)return; SELP['p'+slot]=u; updateTray(); }
+function updateTray(){
+  const nm=u=>u?esc(u.name)+(u.owner_name?` [${esc(u.owner_name)}]`:''):'—';
+  $('#trayP1').innerHTML=`P1: <i>${nm(SELP.p1)}</i>`;
+  $('#trayP2').innerHTML=`P2: <i>${nm(SELP.p2)}</i>`;
+  $('#tray').classList.toggle('hide',!(SELP.p1||SELP.p2));
+  if(!$('#trayTarget').value && $('#target').value) $('#trayTarget').value=$('#target').value;
+  if(!$('#trayTarget').value && _breedTargetCard){
+    const bt=DATA.targets.find(x=>x.card_id===_breedTargetCard);
+    if(bt) $('#trayTarget').value=bt.name;
+  }
+}
+
+// ---- detail screen (full lineage like uma.moe + edit note/tags + filter) ----
+function chipsList(sparks){
+  return (sparks||[]).filter(s=>s.type!=='other')
+    .slice().sort((a,b)=>TYPE_ORDER.indexOf(_displayType(a.type))-TYPE_ORDER.indexOf(_displayType(b.type))||b.stars-a.stars)
+    .map(s=>pill(s.name,s.stars,_displayType(s.type))).join('')||'<span class=muted>none</span>';
+}
+function openDetail(u){
+  const groups=TYPE_ORDER.map(t=>{
+    const items=(u.agg||[]).filter(a=>a.type===t);
+    if(!items.length)return '';
+    const pills=items.map(a=>pill(a.name,a.total,t,a.pct,a.own)).join('');
+    return `<div class="fg fg-${t}">${pills}</div>`;
+  }).join('');
+  const ph=u.parents||[];
+  const umaHeart=ph.reduce((s,p)=>s+(p.stars||0),0);
+  const ptree=`<div class="ptcol">
+    <div class="pcell"><img class="rport" src="/img/${u.card_id}" onerror="this.style.visibility='hidden'">
+      <div class="ph2">♥ ${umaHeart}</div></div>
+    <div class="pconn">▼</div>
+    <div class="prow">${ph.map(p=>`<div class="pcell">
+      <img class="rport sm" src="/img/${p.card_id}" onerror="this.style.visibility='hidden'">
+      <div class="nm">${esc(p.name)}</div><div class="ph2">♥ ${p.stars}</div></div>`).join('')}</div>
+  </div>`;
+  const pdet=ph.map((p,i)=>`<div class="pcard"><div class="ph">
+      <img class="port sm" src="/img/${p.card_id}" onerror="this.style.visibility='hidden'">
+      <b>Parent ${i+1}: ${esc(p.name)}</b></div><div>${chipsList(p.sparks)}</div></div>`).join('');
+  const owner=u.src==='friend'?`<span class="friendb">friend</span> by ${esc(u.owner_name||'?')}`:`${(u.fans||0).toLocaleString()} fans`;
+  $('#detailBody').innerHTML=`
+    <div class="drow">
+      <div style="flex:1">
+        <div class="dname">${esc(u.name)}</div>
+        <div class="dmeta"><span class="rankb" title="Trained grade (R${u.rank??'?'}). Score: ${(u.rank_score||0).toLocaleString()}">${u.rank_label||('R'+(u.rank??'?'))}</span> ${(u.rank_score||0).toLocaleString()} · ${u.white_count||0} white · ${owner}</div>
+      </div>
+      <button class="ghost" id="dFilter">Show all</button>
+      <button class="ghost" id="dClose">Close ✕</button>
+    </div>
+    <div class="dedit2">
+      <input id="dNote" placeholder="note for this uma..." value="${esc(u.note||'')}">
+      <input id="dTags" placeholder="tags: keep, speed, sell..." value="${esc((u.tags||[]).join(', '))}">
+      <button id="dSave">Save</button><span id="dSaved" class="muted"></span>
+    </div>
+    <div class="dmain">
+      ${ptree}
+      <div class="fgrid">${groups}</div>
+    </div>
+    <button class="ghost" id="dTogglePar" style="margin-top:12px;font-size:12px">Show each parent's sparks ▾</button>
+    <div id="dPar" class="hide" style="margin-top:8px">${pdet}</div>
+    <p class="muted" style="margin:10px 0 0;font-size:11px">Total ★ = trainee + 2 parents. (N★) = trainee's own. % = approx inspiration proc (estimate).</p>`;
+  $('#dClose').onclick=()=>$('#detail').classList.add('hide');
+  $('#dFilter').onclick=()=>filterByUma(u);
+  $('#dSave').onclick=()=>saveDetail(u);
+  $('#dTogglePar').onclick=()=>{const e=$('#dPar');e.classList.toggle('hide');
+    $('#dTogglePar').textContent=e.classList.contains('hide')?"Show each parent's sparks ▾":"Hide parent sparks ▴";};
+  $('#detail').classList.remove('hide');
+}
+function saveDetail(u){
+  const note=$('#dNote').value.trim();
+  const tags=$('#dTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({trained_chara_id:u.trained_chara_id,note,tags})}).then(()=>{
+    u.note=note; u.tags=tags; refreshTagSelects(); renderInv();
+    $('#dSaved').textContent='saved ✓';
+  });
+}
+function filterByUma(u){
+  $('#detail').classList.add('hide'); showTab('inv');
+  $('#filter').value=u.name; renderInv();
+}
+function showTab(name){
+  $$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
+  const panels = ['inv','affinity','breed','tt-overview','tt-planner','tt-lookup','tt-stadium'];
+  panels.forEach(p=>{ const el=$('#'+p); if(el) el.classList.toggle('hide',p!==name); });
+  if(name==='affinity'){
+    affRefreshStatus();
+  }
+  if(name==='tt-overview' && !TT_LOADED){
+    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
+  }
+  if(name==='tt-planner' && !TT_LOADED){
+    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
+  }
+  if(name==='tt-lookup' && !TT_LOADED){
+    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
+  }
+  if(name==='tt-stadium' && !TT_LOADED){
+    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
+  }
+}
+function refreshTagSelects(){
+  const tags=new Set(); allUmas().forEach(x=>(x.tags||[]).forEach(t=>tags.add(t)));
+  const cur2=$('#poolTag').value, ut=[...tags].sort();
+  $('#poolTag').innerHTML='<option value="">— parents: all —</option>'+ut.map(t=>`<option value="${esc(t)}" ${t===cur2?'selected':''}>only tag: ${esc(t)}</option>`).join('');
+}
+$('#detail').addEventListener('click',e=>{ if(e.target.id==='detail') e.currentTarget.classList.add('hide'); });
+
+// ---- want chips (breed) ----
+function _actPctFor(name){
+  if(!ACT_RATES) return null;
+  const all = {...(ACT_RATES.skills||{}), ...(ACT_RATES.universal||{})};
+  // Try exact match first, then case-insensitive
+  if(all[name] !== undefined) return all[name];
+  const nl = name.toLowerCase();
+  for(const [k,v] of Object.entries(all)){ if(k.toLowerCase()===nl) return v; }
+  return null;
+}
+function _isStyleMatch(name){
+  const style = $('#breedStyle').value;
+  if(!style) return false;
+  const kws = STYLE_KEYS[style] || [];
+  const nl = name.toLowerCase();
+  return kws.some(k=>nl.includes(k));
+}
+function renderWant(){
+  $('#wantChips').innerHTML=WANT.map((w,i)=>{
+    const pct = _actPctFor(w);
+    const sm = _isStyleMatch(w);
+    const pctBadge = pct!==null ? ` <span style="font-size:10px;color:${pct>=60?'var(--ok)':pct>=40?'var(--accent)':'var(--mut)'}">${pct}%</span>` : '';
+    const styleBadge = sm ? ' <span style="font-size:9px;color:gold" title="Style match">★</span>' : '';
+    const border = sm ? 'border-color:gold' : '';
+    return `<span class="chip" style="${border}"><b>${esc(w)}</b>${styleBadge}${pctBadge} <span class="x" data-i="${i}">✕</span></span>`;
+  }).join('')||'<span class="muted">no goal: uses generic spark richness</span>';
+  $$('#wantChips .x').forEach(x=>x.onclick=()=>{WANT.splice(+x.dataset.i,1);renderWant();});
+}
+function _addWant(){const v=$('#wantIn').value.trim();if(v&&!WANT.includes(v)){WANT.push(v);renderWant();}$('#wantIn').value='';}
+$('#wantIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();_addWant();}});
+$('#wantIn').addEventListener('change',_addWant);
+
+// ---- strict mode checkbox ----
+$('#breedStrict').addEventListener('change', function(){
+  $('#breedStrictPct').disabled = !this.checked;
+});
+
+// ---- sync TTAnalyzer skill export ----
+$('#breedSyncTT').addEventListener('click', async ()=>{
+  const msg = $('#breedSyncMsg');
+  msg.textContent = 'syncing...';
+  msg.style.color = 'var(--mut)';
+  try {
+    const r = await fetch('/api/import_skill_export', {method:'POST'});
+    const d = await r.json();
+    if(d.ok){
+      msg.style.color = 'var(--ok)';
+      msg.textContent = `synced: ${d.groups} groups, ${d.universal} universal, ${d.total_skills} skills`;
+    } else {
+      msg.style.color = 'var(--pink)';
+      msg.textContent = d.error || 'error';
+    }
+  } catch(e){
+    msg.style.color = 'var(--pink)';
+    msg.textContent = 'TTAnalyzer not reachable';
+  }
+});
+
+// ---- style + distance auto-fill (Breed tab) ----
+const STYLE_KEYS = {
+  'Front Runner': ['front runner','escape','nige'],
+  'Pace Chaser':  ['pace chaser','pacer','senkou'],
+  'Late Surger':  ['late surger','sashi'],
+  'End Closer':   ['end closer','closer','oikomi'],
+};
+const DIST_KEYS = {
+  'Sprint': ['sprint','short'],
+  'Mile':   ['mile'],
+  'Medium': ['medium','middle'],
+  'Long':   ['long','stayer'],
+  'Dirt':   ['dirt'],
+};
+async function applyBreedStyle(){
+  const style = $('#breedStyle').value;
+  const dist  = $('#breedDistance').value;
+  if(!style && !dist){ $('#breedStyleMsg').textContent='Pick a style and/or distance first.'; return; }
+
+  // Fetch act% data from TTAnalyzer (via proxy)
+  ACT_RATES = null;
+  if(style && dist){
+    try {
+      const r = await fetch(`/api/act_rates?style=${encodeURIComponent(style)}&distance=${encodeURIComponent(dist)}`);
+      const d = await r.json();
+      if(d.available){ ACT_RATES = d; }
+    } catch(e){}
+  }
+  // Update status indicator
+  const statusEl = $('#breedActStatus');
+  if(ACT_RATES){
+    statusEl.innerHTML = '<span style="color:var(--ok)">●</span> act% linked <span style="color:var(--mut)">(' + (ACT_RATES.observations||0) + ' obs)</span>';
+  } else {
+    statusEl.innerHTML = '<span style="color:var(--mut)">●</span> act% offline';
+  }
+
+  const styleKw = style ? STYLE_KEYS[style] : [];
+  const distKw  = dist  ? DIST_KEYS[dist]   : [];
+  const whites = (DATA && DATA.skills && DATA.skills.white) || [];
+  const strictOn = $('#breedStrict').checked;
+  const strictPct = strictOn ? parseFloat($('#breedStrictPct').value) : null;
+
+  // Step 1: keyword match (skills with style/distance in the name)
+  const matched = whites.filter(name=>{
+    const n = name.toLowerCase();
+    if(style && dist){
+      if(!styleKw.some(k=>n.includes(k)) && !distKw.some(k=>n.includes(k))) return false;
+    } else {
+      const hasStyle = !style || styleKw.some(k=>n.includes(k));
+      const hasDist  = !dist  || distKw.some(k=>n.includes(k));
+      if(!hasStyle || !hasDist) return false;
+    }
+    return true;
+  });
+
+  // Step 2: TTAnalyzer high-act% skills (skills that proc often for this style+distance
+  // even without the keyword in their name, e.g. Corner Adept, Firm Conditions)
+  const actMatched = [];
+  if(ACT_RATES){
+    const actThreshold = strictOn ? (strictPct || 60) : 60;
+    const allAct = {...(ACT_RATES.skills||{}), ...(ACT_RATES.universal||{})};
+    const matchedLower = new Set(matched.map(m=>m.toLowerCase()));
+    for(const [name, pct] of Object.entries(allAct)){
+      if(pct >= actThreshold && !matchedLower.has(name.toLowerCase())){
+        // Only add if it exists in our white skill pool
+        const found = whites.find(w=>w.toLowerCase()===name.toLowerCase());
+        if(found) actMatched.push(found);
+      }
+    }
+  }
+
+  // Strict filter on keyword-matched skills
+  const finalKeyword = matched.filter(name=>{
+    if(strictPct === null || !ACT_RATES) return true;
+    const n = name.toLowerCase();
+    const isStyle = styleKw.some(k=>n.includes(k));
+    if(isStyle) return true;  // style-match skills always pass
+    const pct = _actPctFor(name);
+    if(pct !== null && pct < strictPct) return false;
+    return true;
+  });
+
+  const allToAdd = [...finalKeyword, ...actMatched];
+  let added = 0;
+  for(const m of allToAdd){ if(!WANT.includes(m)){ WANT.push(m); added++; } }
+  renderWant();
+  const kwCount = finalKeyword.length;
+  const actCount = actMatched.length;
+  const actMsg = actCount ? ` + ${actCount} by act%` : '';
+  const strictMsg = strictPct !== null && ACT_RATES ? ` (strict ≥${strictPct}%)` : '';
+  $('#breedStyleMsg').textContent = `+${added} skills added (${kwCount} keyword${actMsg})${strictMsg}`;
+}
+$('#breedApplyStyle').addEventListener('click', applyBreedStyle);
+
+// Breed target picker (reuses character picker modal)
+let _breedTargetCard = null;
+$('#breedTargetBtn').addEventListener('click', ()=>{
+  _affPickerCb = async (cid, name)=>{
+    _breedTargetCard = cid;
+    $('#target').value = name;
+    const portrait = $('#breedTargetPortrait');
+    portrait.src = `/img/${cid}`;
+    portrait.onerror = ()=>portrait.classList.add('hide');
+    portrait.onload  = ()=>portrait.classList.remove('hide');
+    portrait.classList.remove('hide');
+    $('#breedTargetName').textContent = name;
+    $('#breedTargetName').classList.add('picked');
+  };
+  openCharaPicker();
+});
+
+async function runBreed(){
+  const name=$('#target').value.trim();
+  const t = _breedTargetCard ? DATA.targets.find(x=>x.card_id===_breedTargetCard) : DATA.targets.find(x=>x.name===name);
+  if(!t){alert('Pick a target uma first');return;}
+  CUR_TARGET=t.card_id;
+  let allowed=null; const pt=$('#poolTag').value;
+  if(pt) allowed=DATA.mine.filter(u=>(u.tags||[]).includes(pt)).map(u=>u.trained_chara_id);
+  $('#ownRes').innerHTML='<span class=muted>computing...</span>';$('#rentRes').innerHTML='';
+  const breedBody = {target:t.card_id,want:WANT,w_affinity:+$('#wAff').value,w_spark:+$('#wSpark').value,allowed_ids:allowed};
+  const bStyle=$('#breedStyle').value, bDist=$('#breedDistance').value;
+  if(bStyle) breedBody.breed_style = bStyle;
+  if(bDist) breedBody.breed_distance = bDist;
+  if($('#breedStrict').checked && ACT_RATES) breedBody.strict_act_pct = parseFloat($('#breedStrictPct').value)||60;
+  const res=await (await fetch('/api/breed',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(breedBody)})).json();
+  const wTag = res.weighted ? ' <span style="font-size:9px;color:gold" title="Weighted by act%">★ weighted</span>' : '';
+  $('#ownRes').innerHTML=(res.own.map((c,i)=>combo(c,i)).join('')||'<span class=muted>none</span>') + (wTag && res.own.length ? `<div style="text-align:right;margin-top:4px">${wTag}</div>` : '');
+  $('#rentRes').innerHTML=(res.rental.map((c,i)=>combo(c,i)).join('')||'<span class=muted>none</span>') + (wTag && res.rental.length ? `<div style="text-align:right;margin-top:4px">${wTag}</div>` : '');
+  bindResultClicks('ownRes'); bindResultClicks('rentRes');
+}
+function combo(c, idx){
+  const blue=Object.entries(c.blue||{}).map(([k,v])=>`<span class="stat">${k} ${v}</span>`).join('  ');
+  const own=c.p2.owner_name?` <span class="friendb">${esc(c.p2.owner_name)}</span>`:'';
+  const rank = idx != null ? `<span style="color:var(--mut);font-size:10px;font-weight:700;margin-right:4px">#${idx+1}</span>` : '';
+  return `<div class="combo clickable" data-p1="${c.p1.trained_chara_id}" data-p2="${c.p2.trained_chara_id}">
+    <div class="cpair">
+      ${rank}<img class="port sm" src="/img/${c.p1.card_id}" onerror="this.style.visibility='hidden'" style="border-radius:50%;border:2px solid var(--line)">
+      <span>${esc(c.p1.name)} <span class="rankb" style="font-size:9px;padding:1px 4px">${c.p1.rank_label||'R'+(c.p1.rank||'?')}</span></span>
+      <span class="cx" style="font-size:14px;color:#3a4050">×</span>
+      <img class="port sm" src="/img/${c.p2.card_id}" onerror="this.style.visibility='hidden'" style="border-radius:50%;border:2px solid var(--line)">
+      <span>${esc(c.p2.name)} <span class="rankb" style="font-size:9px;padding:1px 4px">${c.p2.rank_label||'R'+(c.p2.rank||'?')}</span></span>${own}
+    </div>
+    <div class="cmeta">
+      <b class="c-aff" style="font-size:14px">${c.affinity}</b>
+      <span class="muted" style="font-size:10px">affinity</span>
+      <span class="muted" style="font-size:11px;margin-left:8px">spark <b style="color:var(--fg)">${c.spark}</b></span>
+      ${c.win_bonus?'<span class="c-g1" style="font-size:12px">+'+c.win_bonus+' race</span>':''}
+    </div>
+    ${blue?`<div style="font-size:11px;margin-top:3px;color:var(--mut)">stats: ${blue}</div>`:''}
+  </div>`;
+}
+
+// ---- pair detail (click a breeding result) ----
+function pairGrid(agg){
+  const top5=new Set((agg||[]).filter(a=>a.pct!=null).sort((a,b)=>b.pct-a.pct).slice(0,5).map(a=>a.name));
+  return TYPE_ORDER.map(t=>{
+    const items=(agg||[]).filter(a=>a.type===t); if(!items.length)return '';
+    return `<div class="fg fg-${t}">${items.map(a=>pill(a.name,a.total,t,top5.has(a.name)?a.pct:null,0)).join('')}</div>`;
+  }).join('');
+}
+function parentCol(p,label){
+  const tg=(p.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('');
+  const note=p.note?`<div class="muted" style="font-size:12px;margin-top:3px">“${esc(p.note)}”</div>`:'';
+  const owner=p.owner_name?` <span class="friendb">${esc(p.owner_name)}</span>`:'';
+  return `<div class="pcard" style="flex:1"><div class="ph">
+      <img class="port sm" src="/img/${p.card_id}" onerror="this.style.visibility='hidden'">
+      <b>${label}: ${esc(p.name)}</b> <small>R${p.rank}</small>${owner}</div>
+    ${note}${tg?`<div style="margin-top:4px">${tg}</div>`:''}
+    <div style="margin-top:6px">${chipsList(p.sparks)}</div></div>`;
+}
+function sparkOddsGrid(odds, mode){
+  const items = odds[mode] || [];
+  if(!items.length) return '<span class="muted">No spark data</span>';
+  // Group by type
+  const typeLabel = {aptitude:'Aptitude',pink:'Aptitude',unique:'Unique/Green',green:'Unique/Green',
+                     skill:'White Skills',white:'White Skills',scenario:'Scenario',race:'Race Wins'};
+  const typeColor = {aptitude:'var(--pink)',pink:'var(--pink)',unique:'var(--green)',green:'var(--green)',
+                     skill:'var(--txt)',white:'var(--txt)',scenario:'var(--txt)',race:'var(--white)'};
+  let lastType = '';
+  return items.map(s=>{
+    const cat = s.cat || s.type;
+    let header = '';
+    const tl = typeLabel[cat] || cat;
+    if(tl !== lastType){ lastType = tl; header = `<div class="odds-type-header" style="color:${typeColor[cat]||'var(--txt)'}">${tl}</div>`; }
+    const ge2 = s.ge2_pct != null ? `<span class="odds-ge2">&ge;2: ${s.ge2_pct}%</span>` : '';
+    const bar = Math.min(100, s.ge1_pct);
+    const barColor = s.ge1_pct >= 50 ? 'var(--ok)' : s.ge1_pct >= 20 ? 'var(--accent)' : 'var(--mut)';
+    const stars1 = s.stars_p1 ? `<span class="odds-star odds-star-p1">${s.stars_p1}★</span>` : '';
+    const stars2 = s.stars_p2 ? `<span class="odds-star odds-star-p2">${s.stars_p2}★</span>` : '';
+    const oddsHi = _isBreedMatch(s.name);
+    const hiStyle = oddsHi ? 'background:rgba(218,165,32,0.12);border-radius:4px' : '';
+    const hiName = oddsHi ? 'color:#f0d060;font-weight:600' : '';
+    return `${header}<div class="odds-row" style="${hiStyle}">
+      <div class="odds-name" style="${hiName}">${esc(s.name)} ${stars1}${stars2}</div>
+      <div class="odds-bar-wrap"><div class="odds-bar" style="width:${bar}%;background:${barColor}"></div></div>
+      <div class="odds-val">${s.ge1_pct}%</div>
+      ${ge2 ? `<div class="odds-ge2-wrap">${ge2}</div>` : '<div class="odds-ge2-wrap"></div>'}
+    </div>`;
+  }).join('');
+}
+
+function openPairDetail(d){
+  // Highlight: WANT list + universal high-act% skills + style/distance keywords
+  _BREED_HI = new Set(WANT.map(w=>w.toLowerCase()));
+  // Add universal skills from TTAnalyzer (Corner Adept, Firm Conditions, etc.)
+  if(ACT_RATES && ACT_RATES.universal){
+    for(const name of Object.keys(ACT_RATES.universal)){
+      _BREED_HI.add(name.toLowerCase());
+    }
+  }
+  _BREED_HI_KW = [];
+  const bStyle=$('#breedStyle').value, bDist=$('#breedDistance').value;
+  if(bStyle && STYLE_KEYS[bStyle]) _BREED_HI_KW.push(...STYLE_KEYS[bStyle]);
+  if(bDist && DIST_KEYS[bDist]) _BREED_HI_KW.push(...DIST_KEYS[bDist]);
+
+  const c=d.affinity;
+  const hasOdds = d.spark_odds && (d.spark_odds.full_run || d.spark_odds.first_only);
+  const oddsPanel = hasOdds ? `
+    <div class="seclab" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Expected Spark Proc Odds</span>
+      <div class="odds-toggle">
+        <button class="odds-btn active" data-mode="full_run">Full run (3 events)</button>
+        <button class="odds-btn ghost" data-mode="first_only">First inheritance only</button>
+      </div>
+    </div>
+    <div class="odds-grid" id="oddsGrid">${sparkOddsGrid(d.spark_odds, 'full_run')}</div>
+    <p class="muted" style="font-size:10px;margin-top:6px">
+      Chance of each spark firing at least once during inheritance. Higher affinity between parents and target = higher odds.
+      <b>Over a full run</b> = 3 events (1 initial inheritance + 2 mid-run inspirations). <b>First inheritance</b> = just the 1 starting event.
+      Stars show each parent's contribution (<span style="color:var(--accent)">blue</span> = P1, <span style="color:var(--pink)">pink</span> = P2). Based on Polaris/Cygames patent rates — treat as estimates.
+    </p>` : '';
+
+  $('#detailBody').innerHTML=`
+    <div class="drow"><div style="flex:1">
+      <div class="dname">${esc(d.p1.name)} × ${esc(d.p2.name)}</div>
+      <div class="dmeta">breeding <b>${esc(d.target_name)}</b> · <b class="c-aff">Affinity ${c.total}</b>${c.win_bonus?' · <span class="c-g1">+'+c.win_bonus+' race</span>':''}</div>
+    </div><button class="ghost" id="dClose">Close ✕</button></div>
+    ${oddsPanel}
+    <div class="seclab">Inherited factors (both parents combined)</div>
+    ${pairGrid(d.agg)}
+    <div class="dmain" style="margin-top:12px;gap:12px">${parentCol(d.p1,'Parent 1')}${parentCol(d.p2,'Parent 2')}</div>
+    <p class="muted" style="font-size:11px;margin-top:8px">% = approx inspiration proc (top 5 shown). "you" omitted (offspring is fresh).</p>`;
+  $('#dClose').onclick=()=>{_BREED_HI=new Set();_BREED_HI_KW=[];$('#detail').classList.add('hide');};
+  // Odds toggle
+  if(hasOdds){
+    $$('.odds-btn').forEach(btn=>{
+      btn.onclick=()=>{
+        $$('.odds-btn').forEach(b=>{b.classList.remove('active');b.classList.add('ghost');});
+        btn.classList.add('active');btn.classList.remove('ghost');
+        $('#oddsGrid').innerHTML = sparkOddsGrid(d.spark_odds, btn.dataset.mode);
+      };
+    });
+  }
+  $('#detail').classList.remove('hide');
+}
+async function showPair(p1id,p2id){
+  if(!CUR_TARGET){alert('Pick a target uma (Breed: field) first');return;}
+  const d=await (await fetch('/api/pair',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({target:CUR_TARGET,p1_id:p1id,p2_id:p2id})})).json();
+  if(d.error){alert(d.error);return;}
+  openPairDetail(d);
+}
+function bindResultClicks(box){
+  $$(`#${box} .combo.clickable`).forEach(el=>el.onclick=()=>showPair(+el.dataset.p1,+el.dataset.p2));
+}
+
+// tabs + events
+$$('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
+$('#filter').addEventListener('input',renderInv);
+$('#minWhite').addEventListener('input',renderInv);
+$('#sortBy').addEventListener('change',renderInv);
+$('#fcats').addEventListener('click',e=>{
+  const add=e.target.closest('.addf');
+  if(add){const k=add.dataset.k;FILTERS[k].push({name:'',min:1,max:CATS.find(c=>c.k===k).max});renderFcats();renderInv();return;}
+  const x=e.target.closest('.x');
+  if(x){const r=x.closest('.frow');FILTERS[r.dataset.k].splice(+r.dataset.i,1);renderFcats();renderInv();}
+});
+$('#fcats').addEventListener('change',e=>{
+  const r=e.target.closest('.frow'); if(!r)return;
+  const f=FILTERS[r.dataset.k][+r.dataset.i];
+  if(e.target.classList.contains('fname'))f.name=e.target.value;
+  if(e.target.classList.contains('fmin'))f.min=+e.target.value;
+  if(e.target.classList.contains('fmax'))f.max=+e.target.value;
+  renderInv();
+});
+$('#fcats').addEventListener('input',e=>{if(e.target.classList.contains('fname')&&e.target.tagName==='INPUT'){
+  const r=e.target.closest('.frow');FILTERS[r.dataset.k][+r.dataset.i].name=e.target.value;renderInv();}});
+$('#clearF').onclick=()=>{for(const k in FILTERS)FILTERS[k]=[];renderFcats();renderInv();};
+$('#run').onclick=runBreed;
+$('#trayGo').onclick=()=>{
+  const t=DATA.targets.find(x=>x.name===$('#trayTarget').value.trim());
+  if(t)CUR_TARGET=t.card_id;
+  if(!CUR_TARGET){$('#trayMsg').textContent='set a valid target';return;}
+  if(!SELP.p1||!SELP.p2){$('#trayMsg').textContent='pick P1 and P2';return;}
+  if(Math.floor(SELP.p1.card_id/100)===Math.floor(SELP.p2.card_id/100)){$('#trayMsg').textContent='note: same character (not allowed in-game)';}
+  else $('#trayMsg').textContent='';
+  showPair(SELP.p1.trained_chara_id,SELP.p2.trained_chara_id);
+};
+$('#trayClear').onclick=()=>{SELP.p1=null;SELP.p2=null;updateTray();};
+$('#export').onclick=()=>{
+  // Trigger browser download of the UmaExtractor-format data.json so it can
+  // be uploaded to https://hakuraku.moe/veterans or any tool that accepts it.
+  window.location.href = '/api/export/umaextractor';
+};
+
+$('#reload').onclick=async()=>{
+  const btn=$('#reload');
+  btn.textContent='Reloading...'; btn.disabled=true;
+  try{
+    const r=await(await fetch('/api/reload',{method:'POST'})).json();
+    await load();
+    btn.textContent=`✓ ${r.mine}y + ${r.rentable}f`;
+    setTimeout(()=>{btn.textContent='Reload data';btn.disabled=false;},2500);
+  }catch(e){btn.textContent='Error';btn.disabled=false;}
+};
+
+async function checkUpdateAvailable(){
+  try{
+    const r = await fetch('/api/check_update');
+    if(!r.ok) return;
+    const data = await r.json();
+    const btn = $('#restart');
+    if(data.available && data.behind > 0){
+      btn.classList.add('update-avail');
+      btn.textContent = `Update & restart (${data.behind} new)`;
+      btn.title = data.latest ? `Latest: ${data.latest}` : 'New commits available';
+      // toast only the first time per page load
+      if(!checkUpdateAvailable._notified){
+        checkUpdateAvailable._notified = true;
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.innerHTML = `<span>● <b>New update available</b> — click "Update &amp; restart"${data.latest?`<br><small style="color:var(--mut)">latest: ${esc(data.latest)}</small>`:''}</span><span class="toast-x">✕</span>`;
+        t.querySelector('.toast-x').onclick = ()=>t.remove();
+        document.body.appendChild(t);
+        setTimeout(()=>t.remove(), 12000);
+      }
+    } else {
+      btn.classList.remove('update-avail');
+      btn.textContent = 'Update & restart';
+      btn.title = 'git pull + restart the Python server. Picks up the latest code automatically.';
+    }
+  }catch(e){}
+}
+
+$('#restart').onclick=async()=>{
+  const btn=$('#restart');
+  if(!confirm('Run git pull + restart the server? The page will reload automatically when it is back (~3s).')) return;
+  // snapshot the current workflow so it can be restored after reload
+  try{
+    sessionStorage.setItem(STATE_KEY, JSON.stringify(captureUIState()));
+    sessionStorage.setItem(PENDING_KEY, '1');
+  }catch(e){ console.warn('cannot save state', e); }
+  btn.textContent='Pulling + restarting...'; btn.disabled=true;
+  let pullMsg = '';
+  try{
+    const r = await fetch('/api/restart',{method:'POST'});
+    if(r.ok){
+      const body = await r.json();
+      if(body.pull_ok){
+        pullMsg = body.pull_out.includes('Already up to date') ? 'up-to-date' : 'updated';
+      } else {
+        pullMsg = 'pull failed';
+        console.warn('git pull err:', body.pull_err);
+      }
+    }
+  }catch(e){}
+  btn.textContent=`Restarting (${pullMsg})...`;
+  // poll until server is back, then reload page
+  const deadline = Date.now() + 30000;
+  const probe = async ()=>{
+    try{
+      const r = await fetch('/api/setup/status', {cache:'no-store'});
+      if(r.ok){ window.location.reload(); return; }
+    }catch(e){}
+    if(Date.now() < deadline) setTimeout(probe, 400);
+    else { btn.textContent='Timed out — restart manually'; btn.disabled=false; }
+  };
+  setTimeout(probe, 800);
+};
+// ===== SETUP WIZARD =====
+const SETUP={polling:null, mode:null};
+
+function setupShow(){ $('#setupOverlay').classList.remove('hide'); }
+function setupHide(){ $('#setupOverlay').classList.add('hide'); if(SETUP.polling){clearInterval(SETUP.polling); SETUP.polling=null;} }
+
+function setupSetStep(active, status){
+  ['capture','steam','fetch'].forEach(k=>{
+    const el=$('#step-'+k); el.classList.remove('active','done','err');
+  });
+  if(active) $('#step-'+active).classList.add('active');
+  if(status==='done') ['capture','steam','fetch'].forEach(k=>$('#step-'+k).classList.add('done'));
+  if(status==='err' && active) $('#step-'+active).classList.add('err');
+}
+
+function setupShowView(view){
+  ['Capture','Steam','Done'].forEach(v=>$('#setup'+v+'View').classList.add('hide'));
+  if(view) $('#setup'+view+'View').classList.remove('hide');
+  // Capture and Steam live inside the Frida tab; if showing them, ensure the Frida tab is active.
+  // Done is global (outside tabs) so just hide both tab panes when showing it.
+  if(view==='Capture' || view==='Steam'){
+    setupShowTab('frida');
+  } else if(view==='Done'){
+    $('#setupTabExtractor').classList.add('hide');
+    $('#setupTabFrida').classList.add('hide');
+    document.querySelectorAll('.setup-tab').forEach(b=>b.classList.remove('active'));
+  }
+}
+
+function setupMsg(text, err){
+  const m=$('#setupMsg'); m.textContent=text||''; m.classList.toggle('err', !!err);
+}
+
+async function setupRefresh(){
+  let s;
+  try{
+    const r=await fetch('/api/setup/status');
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    s=await r.json();
+  }catch(e){
+    // server is old / endpoints missing — show capture view with a clear error
+    setupSetStep('capture','err'); setupShowView('Capture');
+    setupMsg('Server outdated. Stop it (Ctrl+C) and run `python server.py` again after `git pull`.', true);
+    return;
+  }
+  const step=s.step;
+  // step transitions
+  if(step==='capturing'){
+    setupSetStep('capture'); setupShowView('Capture');
+    setupMsg(s.message||'Waiting for game...');
+    $('#setupStartCapture').textContent='Capturing...'; $('#setupStartCapture').disabled=true;
+  } else if(step==='captured'){
+    setupSetStep('steam'); setupShowView('Steam');
+    $('#step-capture').classList.add('done');
+    setupMsg(s.message||'Credentials captured. Enter your Steam account.');
+    if(/STEAM_GUARD|Guard|2FA|guard/i.test(s.message||'')){
+      $('#setupCodeWrap').classList.remove('hide');
+      $('#setupFetch').textContent='Fetch data'; $('#setupFetch').disabled=false;
+    }
+  } else if(step==='fetching'){
+    setupSetStep('fetch'); setupShowView('Steam');
+    $('#step-capture').classList.add('done'); $('#step-steam').classList.add('done');
+    setupMsg(s.message||'Fetching from server...');
+    $('#setupFetch').textContent='Fetching...'; $('#setupFetch').disabled=true;
+  } else if(step==='done'){
+    setupSetStep(null,'done'); setupShowView('Done');
+    setupMsg(s.message||'Done.');
+    if(SETUP.polling){clearInterval(SETUP.polling); SETUP.polling=null;}
+  } else if(step==='error'){
+    setupSetStep(s.has_auth?'steam':'capture','err');
+    setupShowView(s.has_auth?'Steam':'Capture');
+    setupMsg(s.message||'Error', true);
+    $('#setupStartCapture').textContent='Retry'; $('#setupStartCapture').disabled=false;
+    $('#setupFetch').textContent='Retry'; $('#setupFetch').disabled=false;
+    if(/STEAM_GUARD|Guard/.test(s.message||'')){ $('#setupCodeWrap').classList.remove('hide'); }
+    if(SETUP.polling){clearInterval(SETUP.polling); SETUP.polling=null;}
+  } else { // idle
+    if(s.has_auth){
+      setupSetStep('steam'); $('#step-capture').classList.add('done');
+      setupShowView('Steam');
+      $('#setupTitle').textContent = SETUP.mode==='refetch' ? 'Refetch data' : 'Welcome back';
+      $('#setupSub').textContent = SETUP.mode==='refetch'
+        ? 'Press Fetch to pull fresh data from the server.'
+        : 'Auth saved — re-fetch fresh data from the server.';
+    } else {
+      setupSetStep('capture');
+      setupShowView('Capture');
+      $('#setupTitle').textContent='Set up Heir';
+      $('#setupSub').textContent='First time on this PC. Capture credentials from the running game.';
+    }
+    setupMsg('');
+  }
+}
+
+async function setupStartCapture(){
+  setupMsg(''); $('#setupStartCapture').disabled=true; $('#setupStartCapture').textContent='Launching...';
+  try{
+    await fetch('/api/setup/start_capture',{method:'POST'});
+    SETUP.polling = setInterval(setupRefresh, 1200);
+  }catch(e){ setupMsg('Error: '+e, true); }
+}
+
+async function setupDoFetch(){
+  const u=$('#setupUser').value.trim(), p=$('#setupPass').value, c=$('#setupCode').value.trim();
+  if(!u || !p){ setupMsg('Username y password requeridos.', true); return; }
+  setupMsg(''); $('#setupFetch').disabled=true; $('#setupFetch').textContent='Fetching...';
+  try{
+    await fetch('/api/setup/fetch',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:u,password:p,code:c})});
+    SETUP.polling = setInterval(setupRefresh, 1200);
+  }catch(e){ setupMsg('Error: '+e, true); $('#setupFetch').disabled=false; $('#setupFetch').textContent='Fetch data'; }
+}
+
+function setupShowTab(name){
+  document.querySelectorAll('.setup-tab').forEach(b=>b.classList.toggle('active', b.dataset.stab===name));
+  $('#setupTabExtractor').classList.toggle('hide', name!=='extractor');
+  $('#setupTabFrida').classList.toggle('hide', name!=='frida');
+  setupMsg('');
+}
+document.querySelectorAll('.setup-tab').forEach(b=>{
+  b.addEventListener('click', ()=> setupShowTab(b.dataset.stab));
+});
+
+$('#setupStartCapture').onclick = setupStartCapture;
+$('#setupCancelExt').onclick = async ()=>{ await fetch('/api/setup/reset',{method:'POST'}); setupHide(); };
+$('#setupExtractorBtn').onclick = ()=> $('#setupExtractorFile').click();
+$('#setupExtractorFile').addEventListener('change', async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+  $('#setupExtractorStatus').textContent='reading...';
+  try{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const umas = Array.isArray(parsed) ? parsed : (parsed.umas || parsed.trained_chara || []);
+    if(!umas.length){ $('#setupExtractorStatus').textContent='Empty or invalid file'; return; }
+    $('#setupExtractorStatus').textContent=`uploading ${umas.length} umas...`;
+    const r = await fetch('/api/setup/import_extractor',{method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({umas})});
+    if(!r.ok){ $('#setupExtractorStatus').textContent='Error: '+(await r.text()).slice(0,120); return; }
+    const data = await r.json();
+    $('#setupExtractorStatus').textContent=`OK: ${data.mine} umas imported`;
+    setTimeout(()=>window.location.reload(), 800);
+  }catch(err){
+    $('#setupExtractorStatus').textContent='Error: '+err.message;
+  }
+});
+$('#setupCancel').onclick = async ()=>{ await fetch('/api/setup/cancel_capture',{method:'POST'}); setupHide(); };
+$('#setupSkip').onclick   = async ()=>{ await fetch('/api/setup/reset',{method:'POST'}); setupHide(); };
+$('#setupFetch').onclick  = setupDoFetch;
+$('#setupClose').onclick  = async ()=>{ await fetch('/api/setup/reset',{method:'POST'}); window.location.reload(); };
+$('#refetch').onclick     = async ()=>{ SETUP.mode='refetch'; await fetch('/api/setup/reset',{method:'POST'}); await setupRefresh(); setupShow(); };
+
+// ---- preserve workflow across Update & restart ----
+const STATE_KEY = 'heir_ui_state_v1';
+const PENDING_KEY = 'heir_restart_pending';
+
+function captureUIState(){
+  return {
+    tab: document.querySelector('.tab.active')?.dataset.tab || 'inv',
+    scrollY: window.scrollY,
+    filter: $('#filter').value,
+    minWhite: $('#minWhite').value,
+    sortBy: $('#sortBy').value,
+    srcFilter: SRC_FILTER,
+    invTarget: $('#invTargetName').classList.contains('picked') ? $('#invTargetName').textContent : '',
+    targetCard: TARGET_CARD,
+    targetPortraitCard: _targetCardIdForPortrait,
+    targetWins: _targetWins,
+    filters: FILTERS,
+    breedTarget: $('#target').value,
+    breedTargetCard: _breedTargetCard,
+    wAff: $('#wAff').value,
+    wSpark: $('#wSpark').value,
+    poolTag: $('#poolTag').value,
+    breedStyle: $('#breedStyle').value,
+    breedDistance: $('#breedDistance').value,
+    want: WANT,
+    selp: {
+      p1: SELP.p1?.trained_chara_id,
+      p2: SELP.p2?.trained_chara_id,
+      trayTarget: $('#trayTarget')?.value,
+    },
+  };
+}
+
+async function restoreUIState(s){
+  if(!s) return;
+  if(s.filter!=null) $('#filter').value = s.filter;
+  if(s.minWhite!=null) $('#minWhite').value = s.minWhite;
+  if(s.sortBy) $('#sortBy').value = s.sortBy;
+  if(s.srcFilter){ SRC_FILTER = s.srcFilter; updateSrcBtns(); }
+  if(s.filters){ for(const k in FILTERS) if(s.filters[k]) FILTERS[k] = s.filters[k]; renderFcats(); }
+  if(s.breedTarget) $('#target').value = s.breedTarget;
+  if(s.breedTargetCard){
+    _breedTargetCard = s.breedTargetCard;
+    const bt = DATA.targets.find(x=>x.card_id===s.breedTargetCard);
+    if(bt){
+      $('#breedTargetName').textContent = bt.name;
+      $('#breedTargetName').classList.add('picked');
+      const p = $('#breedTargetPortrait');
+      p.src = `/img/${bt.card_id}`;
+      p.onerror = ()=>p.classList.add('hide');
+      p.onload  = ()=>p.classList.remove('hide');
+      p.classList.remove('hide');
+    }
+  }
+  if(s.wAff!=null) $('#wAff').value = s.wAff;
+  if(s.wSpark!=null) $('#wSpark').value = s.wSpark;
+  if(s.poolTag) $('#poolTag').value = s.poolTag;
+  if(s.breedStyle) $('#breedStyle').value = s.breedStyle;
+  if(s.breedDistance) $('#breedDistance').value = s.breedDistance;
+  if(Array.isArray(s.want)){ WANT.length = 0; WANT.push(...s.want); renderWant(); }
+  if(s.selp){
+    if(s.selp.p1) SELP.p1 = allUmas().find(u=>u.trained_chara_id===s.selp.p1) || null;
+    if(s.selp.p2) SELP.p2 = allUmas().find(u=>u.trained_chara_id===s.selp.p2) || null;
+    if(s.selp.trayTarget && $('#trayTarget')) $('#trayTarget').value = s.selp.trayTarget;
+    updateTray();
+  }
+  if(s.targetCard && s.invTarget){
+    setTargetCard(s.targetPortraitCard || s.targetCard, s.invTarget);
+    await fetchTargetAffinity(s.targetCard, s.targetWins || []);
+  }
+  renderInv();
+  if(s.tab && s.tab!=='inv') showTab(s.tab);
+  if(s.scrollY) window.scrollTo(0, s.scrollY);
+}
+
+// ===== AFFINITY TAB =====
+const AFF = { target: null, targetName: '', results: [], p1: null, p2: null };
+
+async function affRefreshStatus(){
+  try{
+    const r = await fetch('/api/wsb/status');
+    const s = await r.json();
+
+    // WSB is always computed offline — show source info
+    $('#wsbStatus').innerHTML = `<span style="color:var(--ok)">●</span> Race bonus: computed offline (${s.method || 'win_saddle intersection'})`;
+    $('#wsbCoverage').innerHTML = '';
+  }catch(e){
+    $('#wsbStatus').innerHTML = '';
+    $('#wsbCoverage').innerHTML = '';
+  }
+}
+
+$('#affRefresh').onclick = async ()=>{
+  $('#affRefresh').textContent = 'Refreshing...'; $('#affRefresh').disabled = true;
+  await affRefreshStatus();
+  if(AFF.target) await affFetchRank();
+  $('#affRefresh').textContent = 'Refresh'; $('#affRefresh').disabled = false;
+};
+
+// Target picker (reuses the character picker modal)
+let _affPickerCb = null;
+
+function affOpenPicker(){
+  _affPickerCb = async (cid, name)=>{
+    AFF.target = cid; AFF.targetName = name;
+    const portrait = $('#affTargetPortrait');
+    portrait.src = `/img/${cid}`;
+    portrait.onerror = ()=>portrait.classList.add('hide');
+    portrait.onload  = ()=>portrait.classList.remove('hide');
+    portrait.classList.remove('hide');
+    $('#affTargetName').textContent = name;
+    $('#affTargetName').classList.add('picked');
+    $('#affTargetClear').classList.remove('hide');
+    await affFetchRank();
+  };
+  openCharaPicker();
+}
+
+$('#affTargetBtn').addEventListener('click', affOpenPicker);
+$('#affTargetClear').addEventListener('click', ()=>{
+  AFF.target = null; AFF.results = [];
+  $('#affTargetPortrait').classList.add('hide');
+  $('#affTargetName').textContent = 'Pick a target trainee to rank parents...';
+  $('#affTargetName').classList.remove('picked');
+  $('#affTargetClear').classList.add('hide');
+  $('#affRankList').innerHTML = '';
+  $('#affPairResult').innerHTML = '';
+});
+
+async function affFetchRank(){
+  if(!AFF.target) return;
+  $('#affRankList').innerHTML = '<div class="card"><span class="muted">Ranking all parents by compatibility...</span></div>';
+  try{
+    const r = await fetch('/api/affinity/rank', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({target: AFF.target})});
+    const d = await r.json();
+    AFF.results = d.results || [];
+
+    affRenderRank();
+  }catch(e){
+    $('#affRankList').innerHTML = `<div class="card"><span style="color:#e06b6b">Error: ${esc(e.message)}</span></div>`;
+  }
+}
+
+function affRenderRank(){
+  if(!AFF.results.length){
+    $('#affRankList').innerHTML = '<div class="card muted">No results. Pick a target first.</div>';
+    return;
+  }
+  const rows = AFF.results.map((r, i)=>{
+    const wsbBadge = r.wsb > 0 ? `<span class="wsb-badge cached">+${r.wsb}</span>` : '';
+    const owner = r.owner_name ? `<span class="friendb" style="font-size:10px">${esc(r.owner_name)}</span>` : '';
+    const wsbCol = `<div class="anum"><b style="color:var(--ok)">${r.wsb}</b><small>WSB</small></div>`;
+    return `<div class="aff-rank-row" data-tcid="${r.trained_chara_id}">
+      <span class="muted" style="width:28px;text-align:right;font-size:12px;flex-shrink:0">#${i+1}</span>
+      <img class="aport" src="/img/${r.card_id}" onerror="this.style.visibility='hidden'">
+      <div class="ainfo">
+        <div class="aname">${esc(r.name)} <span class="rankb" style="font-size:10px;padding:1px 5px">${r.rank_label}</span> ${owner}</div>
+        <div class="ameta">
+          GPs: ${r.gp_names.map(n=>esc(n)).join(' + ') || '—'} ${wsbBadge}
+        </div>
+      </div>
+      <div class="anums">
+        <div class="anum"><b style="color:var(--accent)">${r.cr}</b><small>Relation</small></div>
+        ${wsbCol}
+        <div class="anum"><b style="color:#ffcf6e">${r.chain}</b><small>Total</small></div>
+      </div>
+      <div class="abtns">
+        <button class="ghost" data-act="p1" data-tcid="${r.trained_chara_id}">→P1</button>
+        <button class="ghost" data-act="p2" data-tcid="${r.trained_chara_id}">→P2</button>
+      </div>
+    </div>`;
+  }).join('');
+  const header = `<div style="padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+    <b style="color:var(--accent)">RANKING — ${esc(AFF.targetName)}</b>
+    <span class="muted" style="font-size:12px">${AFF.results.length} parents</span>
+  </div>`;
+  $('#affRankList').innerHTML = `<div class="card" style="padding:0">${header}${rows}</div>`;
+  // bind buttons
+  $$('#affRankList button[data-act]').forEach(btn=>{
+    btn.onclick = (e)=>{
+      e.stopPropagation();
+      const tcid = +btn.dataset.tcid;
+      const r = AFF.results.find(x=>x.trained_chara_id===tcid);
+      if(!r) return;
+      if(btn.dataset.act==='p1'){
+        AFF.p1 = r;
+        $('#affP1').innerHTML = `P1: <i>${esc(r.name)}</i>`;
+      } else {
+        AFF.p2 = r;
+        $('#affP2').innerHTML = `P2: <i>${esc(r.name)}</i>`;
+      }
+    };
+  });
+}
+
+$('#affCalcPair').onclick = async ()=>{
+  if(!AFF.target){$('#affPairResult').innerHTML='<span class="muted">Pick a target first</span>'; return;}
+  if(!AFF.p1||!AFF.p2){$('#affPairResult').innerHTML='<span class="muted">Select P1 and P2 from the ranking</span>'; return;}
+  if(AFF.p1.trained_chara_id===AFF.p2.trained_chara_id){$('#affPairResult').innerHTML='<span style="color:#e06b6b">P1 and P2 must be different</span>'; return;}
+  $('#affCalcPair').textContent='Calculating...'; $('#affCalcPair').disabled=true;
+  try{
+    const r = await fetch('/api/affinity/pair', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({target: AFF.target, p1_id: AFF.p1.trained_chara_id, p2_id: AFF.p2.trained_chara_id})});
+    const d = await r.json();
+    affRenderPair(d);
+  }catch(e){
+    $('#affPairResult').innerHTML = `<span style="color:#e06b6b">Error: ${esc(e.message)}</span>`;
+  }
+  $('#affCalcPair').textContent='Calculate pair'; $('#affCalcPair').disabled=false;
+};
+
+$('#affClearPair').onclick = ()=>{
+  AFF.p1 = null; AFF.p2 = null;
+  $('#affP1').innerHTML = 'P1: <i>—</i>';
+  $('#affP2').innerHTML = 'P2: <i>—</i>';
+  $('#affPairResult').innerHTML = '';
+};
+
+function affRenderPair(d){
+  const hasWsb = d.wsb_p1_known || d.wsb_p2_known;
+  const wsb1Badge = d.wsb_p1_known ? `<span class="wsb-badge cached">+${d.wsb_p1}</span>` : (hasWsb ? `<span class="wsb-badge missing">?</span>` : '');
+  const wsb2Badge = d.wsb_p2_known ? `<span class="wsb-badge cached">+${d.wsb_p2}</span>` : (hasWsb ? `<span class="wsb-badge missing">?</span>` : '');
+
+  // Build formula string based on what data we have
+  const parts = [];
+  parts.push(`${d.cr1}${d.wsb_p1?'+'+d.wsb_p1:''}`);
+  parts.push(`${d.cr2}${d.wsb_p2?'+'+d.wsb_p2:''}`);
+  parts.push(`${d.cross}`);
+  const formula = `(${parts[0]}) + (${parts[1]}) + ${parts[2]} = ${d.total}`;
+
+  function parentBox(label, name, card, cr, base, gpBonus, wsb, wsbKnown, wsbBadge, chain, gpNames){
+    const wsbRow = (wsbKnown || hasWsb)
+      ? `<div class="arow"><span>Race bonus (WSB) ${wsbBadge}</span><span style="color:${wsbKnown?'var(--ok)':'var(--mut)'}">+${wsbKnown?wsb:'?'}</span></div>` : '';
+    return `<div class="aff-pair-parent">
+      <div class="aph">
+        <img src="/img/${card}" onerror="this.style.visibility='hidden'">
+        <div><b>${esc(name)}</b><br><small class="muted">${label}</small></div>
+      </div>
+      <div class="arow"><span>Character relation</span><span>+${base}</span></div>
+      ${gpBonus?`<div class="arow"><span>GP relation bonus</span><span>+${gpBonus}</span></div>`:''}
+      <div class="arow"><span>Subtotal (relation)</span><span style="color:var(--accent)">${cr}</span></div>
+      ${wsbRow}
+      <div class="arow"><span>Parent contribution</span><span>${chain}</span></div>
+      ${gpNames.length?`<div style="font-size:11px;color:var(--mut);margin-top:6px">GPs: ${gpNames.map(n=>esc(n)).join(' + ')}</div>`:''}
+    </div>`;
+  }
+
+  const p1Box = parentBox('PARENT 1', d.p1_name, d.p1_card, d.cr1, d.p1_base, d.p1_gp_bonus, d.wsb_p1, d.wsb_p1_known, wsb1Badge, d.p1_chain, d.p1_gp_names||[]);
+  const p2Box = parentBox('PARENT 2', d.p2_name, d.p2_card, d.cr2, d.p2_base, d.p2_gp_bonus, d.wsb_p2, d.wsb_p2_known, wsb2Badge, d.p2_chain, d.p2_gp_names||[]);
+
+  const wsbNote = (!d.wsb_p1_known || !d.wsb_p2_known)
+    ? `<div style="text-align:center;margin-top:8px;font-size:11px;color:var(--mut)">
+        ${hasWsb?'Some':'All'} race bonuses not yet cached — real in-game value will be higher.
+       </div>` : '';
+
+  $('#affPairResult').innerHTML = `<div class="aff-pair-box">
+    <div class="aff-pair-total">${d.total}</div>
+    <div class="aff-pair-formula">${formula}</div>
+    <div style="text-align:center;margin-top:4px"><span class="rankb">${d.rank_label || '?'}</span>
+      <small class="muted" style="margin-left:6px">breeding ${esc(d.target_name)}</small></div>
+    <div class="aff-pair-grid">${p1Box}${p2Box}</div>
+    <div class="aff-pair-cross">
+      <b>Cross-term</b> (${esc(d.p1_name)} × ${esc(d.p2_name)}) = <b style="color:var(--accent)">+${d.cross}</b>
+    </div>
+    ${wsbNote}
+  </div>`;
+}
+
+// ---- Ko-fi banner ----
+if(localStorage.getItem('kofi_dismissed')){
+  document.querySelector('.kofi-banner')?.classList.add('hide');
+}
+$('#kofiBannerClose')?.addEventListener('click', ()=>{
+  document.querySelector('.kofi-banner')?.classList.add('hide');
+  localStorage.setItem('kofi_dismissed','1');
+});
+
+// ============================================================
+// TEAM TRIALS ANALYZER LOGIC (merged from TTAnalyzer dashboard)
+// ============================================================
+let TT_LOADED = false;
+let TT_DATA = null;
+let TT_SORT_KEY = 'avg_score';
+let TT_SORT_DIR = -1;
+let TT_STADIUM_DATA = null;
+let TT_STADIUM_CAT = null;
+let TT_STADIUM_SORT_KEY = 'distance_category';
+let TT_STADIUM_SORT_DIR = 1;
+let TT_CAPTURING = false;
+
+const TT_DIST_LABEL = { 1:'Sprint', 2:'Mile', 3:'Mid', 4:'Long', 5:'Dirt' };
+const TT_CATEGORY_ORDER = { 'Sprint':0, 'Mile':1, 'Medium':2, 'Long':3, 'Dirt':4 };
+
+function ttIconUrl(card_id){ return `/icon/${card_id}`; }
+
+function ttScoreColor(score, top){
+  if(!top) return '';
+  const r = score/top;
+  if(r>=0.92) return 'tt-score-good';
+  if(r>=0.75) return '';
+  if(r>=0.55) return 'tt-score-warn';
+  return 'tt-score-bad';
+}
+function ttCvColor(cv){
+  if(cv==null) return '';
+  if(cv<12) return 'tt-cv-good';
+  if(cv<22) return 'tt-cv-mid';
+  return 'tt-cv-bad';
+}
+function ttVerdictFor(uma, topAvg){
+  const ratio = topAvg ? uma.avg_score/topAvg : 0;
+  if(ratio>=0.95 && uma.cv<15) return ['GOAT','good'];
+  if(ratio>=0.88) return ['STRONG','good'];
+  if(ratio>=0.75) return ['SOLID','mid'];
+  if(ratio>=0.6) return ['INCONSISTENT','mid'];
+  return ['RETRAIN','bad'];
+}
+
+function ttSetSort(key){
+  if(TT_SORT_KEY===key) TT_SORT_DIR*=-1;
+  else { TT_SORT_KEY=key; TT_SORT_DIR=(key==='cv'||key==='gap_to_top')?1:-1; }
+  ttRender();
+}
+
+const TT_PLAYER_FIELDS = [
+  ['player_name','Player'],
+  ['viewer_id','Viewer ID'],
+  ['team_class','Team class'],
+  ['current_rank','Current rank', v=>'#'+v.toLocaleString()],
+  ['personal_best_point','Personal best', v=>v.toLocaleString()],
+  ['current_best_point','This season best', v=>v.toLocaleString()],
+  ['support_card_bonus_pct','Support bonus', v=>'+'+v.toFixed(2)+'%'],
+  ['promotion_threshold','Promotion at', v=>v.toLocaleString()],
+  ['demotion_threshold','Demotion at', v=>v.toLocaleString()],
+  ['keep_threshold','Keep at', v=>v.toLocaleString()],
+  ['current_rp','RP now', v=>v+' / ?'],
+  ['max_rp','RP max'],
+  ['opponent_strength_tier','Last opp. tier'],
+  ['opponent_eval_point','Last opp. eval', v=>v.toLocaleString()],
+  ['trial_final_score','Last trial score', v=>v.toLocaleString()],
+  ['trial_score_bonus','Last trial bonus', v=>'+'+v.toLocaleString()],
+  ['trial_win_type','Last trial result', v=>({1:'WIN',2:'LOSE',3:'DRAW'})[v]||v],
+];
+
+async function ttLoadPlayer(){
+  try{
+    const r = await fetch('/api/player').then(r=>r.json());
+    const latest = r.latest||{};
+    const grid = $('#tt-player-grid');
+    const cards = TT_PLAYER_FIELDS.map(([key,label,fmt])=>{
+      const v=latest[key];
+      if(v==null||v==='') return '';
+      let display;
+      try{display=fmt?fmt(v):String(v);}catch(e){display=String(v);}
+      return `<div class="tt-player-cell"><div class="tt-player-cell-label">${label}</div><div class="tt-player-cell-value">${display}</div></div>`;
+    }).filter(Boolean).join('');
+    grid.innerHTML = cards || '<div class="tt-status-line" style="padding:8px">No player data yet — play one Team Trial and refresh.</div>';
+  }catch(e){}
+}
+
+async function ttLoad(){
+  await ttLoadPlayer();
+  try{
+    const r = await fetch('/api/team').then(r=>r.json());
+    TT_DATA = r;
+    ttRender();
+  }catch(e){}
+}
+
+function ttRender(){
+  const r = TT_DATA;
+  if(!r) return;
+  $('#tt-stat-trials').innerHTML = `<b>${r.n_trials_estimated}</b>&nbsp;trials`;
+  $('#tt-stat-rows').innerHTML = `<b>${r.n_rows}</b>&nbsp;race entries`;
+  const sb = $('#tt-stat-bonus');
+  if(r.support_bonus_pct!=null){
+    sb.innerHTML = `Support&nbsp;<b>+${r.support_bonus_pct.toFixed(2)}%</b>`;
+    sb.style.display='';
+  } else sb.style.display='none';
+
+  let _maxIdx=-1;
+  r.umas.forEach(u=>(u.trials||[]).forEach(t=>{if(t.trial_idx>_maxIdx) _maxIdx=t.trial_idx;}));
+  const totalTrials=_maxIdx+1;
+  const showN=parseInt($('#tt-filter-show')?.value||0)||0;
+  const visibleTrials=(showN>0&&showN<totalTrials)?showN:Math.max(10,totalTrials);
+  const startTrial=Math.max(0,totalTrials-visibleTrials);
+  const N=visibleTrials;
+
+  const trialW=N>40?38:N>30?44:N>20?52:62;
+  document.documentElement.style.setProperty('--trial-col-w',trialW+'px');
+  const head=$('#tt-ra-head');
+  const TIPS={AVG:'Average score',  'Trim AVG':'Drops lowest if below 80%', 'CV%':'stdev/avg × 100', Ceil:'90th percentile',
+    Floor:'10th percentile', Gap:'Gap to top', 'Act%':'Avg skill activation', Verdict:'Rating'};
+  const sortIcon=col=>TT_SORT_KEY===col?(TT_SORT_DIR>0?' ↑':' ↓'):'';
+  const makeTh=(label,sortKey,extraClass)=>{
+    const tip=TIPS[label]||'';
+    const cls=(extraClass?extraClass+' ':'')+(sortKey?'tt-sortable':'');
+    const click=sortKey?` onclick="ttSetSort('${sortKey}')"`:'';
+    return `<th class="${cls}" title="${tip}"${click}>${label}${sortKey?sortIcon(sortKey):''}</th>`;
+  };
+  let h=makeTh('Uma','chara_name');
+  for(let i=0;i<N;i++) h+=`<th class="trial-col" title="Score in trial ${startTrial+i+1}">T${startTrial+i+1}</th>`;
+  h+=makeTh('AVG','avg_score','stat-col');
+  h+=makeTh('Trim AVG','trimmed_avg','stat-col');
+  h+=makeTh('CV%','cv','stat-col');
+  h+=makeTh('Ceil','ceiling','stat-col');
+  h+=makeTh('Floor','floor','stat-col');
+  h+=makeTh('Gap','gap_to_top','stat-col');
+  h+=makeTh('Act%','overall_act_pct','stat-col');
+  h+=makeTh('Verdict',null,'verdict-col');
+  head.innerHTML=h;
+
+  if(!r.umas.length){
+    $('#tt-ra-body').innerHTML=`<tr><td colspan="${N+8}" class="tt-empty">
+      <div style="font-size:14px;color:var(--mut);margin-bottom:8px">No Team Trials processed yet</div>
+      <div>Click <b>Start capture</b>, play a trial, then stop.</div>
+    </td></tr>`;
+    return;
+  }
+
+  const minAct=parseFloat($('#tt-filter-act-min').value);
+  const maxAct=parseFloat($('#tt-filter-act-max').value);
+  const lo=isNaN(minAct)?0:minAct, hi=isNaN(maxAct)?100:maxAct;
+  const filterActive=lo>0||hi<100;
+  const filtered=filterActive?r.umas.filter(u=>{const v=u.overall_act_pct??0;return v>=lo&&v<=hi;}):r.umas;
+  const fc=$('#tt-filter-count');
+  if(fc) fc.textContent=(filterActive&&filtered.length!==r.umas.length)?`(showing ${filtered.length} / ${r.umas.length})`:'';
+
+  const sorted=[...filtered].sort((a,b)=>{
+    const av=a[TT_SORT_KEY],bv=b[TT_SORT_KEY];
+    if(typeof av==='string') return av.localeCompare(bv)*TT_SORT_DIR;
+    return ((av??0)-(bv??0))*TT_SORT_DIR;
+  });
+
+  const topAvg=Math.max(...r.umas.map(u=>u.avg_score));
+  $('#tt-ra-body').innerHTML=sorted.map(u=>{
+    const byIdx={};
+    (u.trials||[]).forEach(t=>{byIdx[t.trial_idx]=t;});
+    let row=`<tr onclick="ttShowDetail(${u.trained_chara_id})">`;
+    const initial=(u.chara_name||'?').trim().charAt(0).toUpperCase();
+    row+=`<td><div class="tt-uma-cell">
+      <div class="tt-uma-icon-wrap"><span>${initial}</span><img class="tt-uma-icon" src="${ttIconUrl(u.chara_id)}" onerror="this.style.display='none'"/></div>
+      <div><div class="tt-uma-name">${u.chara_name}</div><div class="tt-uma-id">id ${u.trained_chara_id}</div></div>
+    </div></td>`;
+    for(let i=0;i<N;i++){
+      const t=byIdx[startTrial+i];
+      if(t){
+        const cls=ttScoreColor(t.display_score,topAvg);
+        row+=`<td class="num trial-col ${cls}" title="Race ${t.race_idx+1} dist=${TT_DIST_LABEL[t.distance_type]||'?'}">${t.display_score.toLocaleString()}</td>`;
+      } else row+=`<td class="num trial-col muted">-</td>`;
+    }
+    const [v,vc]=ttVerdictFor(u,topAvg);
+    row+=`<td class="num">${u.avg_score.toLocaleString()}</td>`;
+    row+=`<td class="num">${u.trimmed_avg.toLocaleString()}</td>`;
+    row+=`<td class="num ${ttCvColor(u.cv)}">${u.cv}</td>`;
+    row+=`<td class="num">${u.ceiling.toLocaleString()}</td>`;
+    row+=`<td class="num">${u.floor.toLocaleString()}</td>`;
+    row+=`<td class="num">${u.gap_to_top.toLocaleString()}</td>`;
+    const actPct=u.overall_act_pct??0;
+    const actCls=actPct>=80?'tt-score-good':(actPct>=60?'':'tt-score-bad');
+    row+=`<td class="num ${actCls}" title="Avg activation per race">${actPct}%</td>`;
+    row+=`<td class="verdict-col"><span class="tt-verdict-pill ${vc}">${v}</span></td>`;
+    row+=`</tr>`;
+    return row;
+  }).join('');
+}
+
+function ttShowDetail(tcid){
+  const uma=TT_DATA.umas.find(u=>u.trained_chara_id===tcid);
+  if(!uma) return;
+  const area=$('#tt-skill-area');
+  area.style.display='block';
+  const skills=Object.entries(uma.skill_activation||{}).map(([sid,info])=>({sid,name:info.name,pct:info.pct,count:info.count}));
+  const always=skills.filter(s=>s.pct>=99);
+  const often=skills.filter(s=>s.pct>=50&&s.pct<99);
+  const rare=skills.filter(s=>s.pct>0&&s.pct<50);
+  const never=skills.filter(s=>s.pct===0);
+  const mkTile=(s,cls)=>`<div class="tt-skill-row ${cls}"><span>${s.name}</span><span class="tt-skill-pct">${s.pct}%</span></div>`;
+  const total=skills.length;
+  area.innerHTML=`
+    <div style="display:flex;align-items:center;gap:18px;margin-bottom:12px;flex-wrap:wrap">
+      <img class="tt-uma-icon" src="${ttIconUrl(uma.chara_id)}" style="width:68px;height:68px;border-radius:50%;border:2px solid var(--line)" onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-size:18px;font-weight:800">${uma.chara_name}</div>
+        <div class="tt-status-line">trained_chara_id ${uma.trained_chara_id} · ${uma.n_appearances} appearances · avg ${uma.avg_score.toLocaleString()}</div>
+        <div class="tt-status-line" style="margin-top:2px">${total} skills — <span style="color:var(--ok)">${always.length} always</span> · <span style="color:#ffce4d">${often.length} often</span> · <span style="color:#ff6e7e">${rare.length} rare</span> · <span style="color:#ff3060">${never.length} never</span></div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div class="tt-status-line">Overall activation</div>
+        <div style="font-size:30px;font-weight:800;color:var(--accent);line-height:1">${uma.overall_act_pct}%</div>
+        <div class="tt-status-line" style="margin-top:4px">avg ${uma.avg_activated} of ${uma.owned_total} skills/race</div>
+      </div>
+    </div>
+    ${always.length?`<div class="tt-section-label">Always activate (${always.length})</div><div class="tt-skill-grid">${always.map(s=>mkTile(s,'always')).join('')}</div>`:''}
+    ${often.length?`<div class="tt-section-label">Often activate (${often.length})</div><div class="tt-skill-grid">${often.map(s=>mkTile(s,'often')).join('')}</div>`:''}
+    ${rare.length?`<div class="tt-section-label">Rare (${rare.length})</div><div class="tt-skill-grid">${rare.map(s=>mkTile(s,'rare')).join('')}</div>`:''}
+    ${never.length?`<div class="tt-section-label">Never activate (${never.length}) — candidates to drop</div><div class="tt-skill-grid">${never.map(s=>mkTile(s,'never')).join('')}</div>`:''}
+  `;
+  area.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── TT Skill Planner ──────────────────────────────────
+async function ttLoadPlannerOptions(){
+  try{
+    const r=await fetch('/api/skill_planner/options').then(r=>r.json());
+    $('#tt-planner-chara').innerHTML='<option value="">Pick a trainee...</option>'
+      +(r.charas||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    $('#tt-planner-dist').innerHTML='<option value="">Distance...</option>'
+      +(r.distances||[]).map(d=>`<option value="${d.id}">${d.label}</option>`).join('');
+    $('#tt-planner-style').innerHTML='<option value="">Style...</option>'
+      +(r.styles||[]).map(s=>`<option value="${s.id}">${s.label}</option>`).join('');
+  }catch(e){}
+}
+
+const TT_VERDICT_CLS={'MUST BUY':'tt-vt-must','GOOD VALUE':'tt-vt-good','CONSIDER':'tt-vt-cons',
+  'EXPENSIVE GAMBLE':'tt-vt-gamble','MEH':'tt-vt-meh','SKIP':'tt-vt-skip','NO DATA':'tt-vt-no'};
+
+function ttRenderPlannerTable(skills){
+  if(!skills||!skills.length) return `<div class="tt-empty">No skill data for this combination yet.</div>`;
+  const rows=skills.map(s=>{
+    const vc=TT_VERDICT_CLS[s.verdict]||'tt-vt-meh';
+    const costStr=s.sp_cost!=null?`${s.sp_cost} SP`:'?';
+    const cpa=s.cost_per_activation!=null?Math.round(s.cost_per_activation):'-';
+    const actCls=s.activation_pct>=80?'tt-score-good':(s.activation_pct>=60?'':'tt-score-warn');
+    return `<tr>
+      <td class="skill-name">${s.name}</td>
+      <td class="${actCls}">${s.activation_pct}%</td>
+      <td class="muted">${s.activated_count}/${s.observations}</td>
+      <td>${costStr}</td>
+      <td class="muted">${cpa}</td>
+      <td style="text-align:center"><span class="tt-verdict-tag ${vc}">${s.verdict}</span></td>
+    </tr>`;
+  }).join('');
+  return `<table class="tt-planner"><thead><tr>
+    <th>Skill</th><th>Act%</th><th>Sample</th><th>SP cost</th><th title="SP / activation probability">SP/Act</th><th style="text-align:center">Verdict</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+async function ttRunPlanner(){
+  const charaId=$('#tt-planner-chara').value;
+  const dist=$('#tt-planner-dist').value;
+  const style=$('#tt-planner-style').value;
+  const status=$('#tt-planner-status');
+  if(!charaId||!dist||!style){status.textContent='Pick trainee, distance, and style first.';return;}
+  status.textContent='Loading…';
+  const url=`/api/skill_planner/plan?chara_id=${charaId}&distance_type=${dist}&running_style=${style}`;
+  const r=await fetch(url).then(r=>r.json());
+  status.textContent='';
+  if(r.error){$('#tt-planner-result').innerHTML=`<div style="color:#ff6e7e">${r.error}</div>`;return;}
+  const specRaces=r.specific_races||0, globRaces=r.global_races||0, uniRaces=r.universal_races||0, uni=r.universal||[];
+  let html=`<div style="font-size:13px;color:var(--mut);margin-bottom:6px">
+    Plan for <b>${r.chara_name}</b> at ${r.distance_label} / ${r.style_label}.
+    <span class="tt-status-line">${specRaces} races exact · ${globRaces} same dist+style · ${uniRaces} total.</span>
+  </div>`;
+  html+=`<div class="tt-plan-section-title">Specific to ${r.chara_name} (${specRaces} races)</div>`;
+  html+=ttRenderPlannerTable(r.specific);
+  if(globRaces>0&&globRaces>specRaces){
+    html+=`<div class="tt-plan-section-title">Cross-uma fallback (same distance + style, any chara)</div>`;
+    html+=ttRenderPlannerTable(r.global);
+  }
+  if(uni.length>0){
+    html+=`<div class="tt-plan-section-title">Universal skills (proc in any race · ${uniRaces} races · ≥70%)</div>`;
+    html+=`<div class="tt-plan-section-sub">Always-on skills like Tail Held High / Sympathy / Groundwork. Safe to buy on almost any uma.</div>`;
+    html+=ttRenderPlannerTable(uni);
+  }
+  $('#tt-planner-result').innerHTML=html;
+}
+
+// ── TT Skill Lookup ────────────────────────────────────
+async function ttLoadSkillList(){
+  try{
+    const r=await fetch('/api/skill_planner/skills').then(r=>r.json());
+    $('#tt-sl-list').innerHTML=r.map(s=>`<option value="${s.name}">`).join('');
+  }catch(e){}
+}
+
+function ttSlPctColor(pct){
+  if(pct==null) return 'var(--mut)';
+  if(pct>=80) return 'var(--ok)';
+  if(pct>=50) return '#ffce4d';
+  if(pct>=25) return '#ff9a4d';
+  return '#ff6e7e';
+}
+
+async function ttRunSkillLookup(){
+  const q=$('#tt-sl-input').value.trim();
+  const status=$('#tt-sl-status'), result=$('#tt-sl-result');
+  if(!q){status.textContent='Type a skill name first.';return;}
+  status.textContent='Loading…';
+  const r=await fetch(`/api/skill_planner/lookup?q=${encodeURIComponent(q)}`).then(r=>r.json());
+  status.textContent='';
+  if(r.error==='ambiguous'){
+    result.innerHTML=`<div style="color:var(--mut);font-size:13px;margin-bottom:8px">Multiple matches — pick one:</div>`+
+      `<div style="display:flex;flex-wrap:wrap;gap:6px">`+
+      r.candidates.map(c=>`<button class="ghost" style="font-size:11px" onclick="$('#tt-sl-input').value='${c.name.replace(/'/g,"\\'")}';ttRunSkillLookup()">${c.name}</button>`).join('')+
+      `</div>`;
+    return;
+  }
+  if(r.error){result.innerHTML=`<div style="color:#ff6e7e">${r.error}</div>`;return;}
+  let html=`<div class="tt-lookup-summary">
+    <div><div class="tt-lookup-skill-name">${r.name}</div><div class="tt-lookup-meta">SP cost: ${r.sp_cost??'?'}</div></div>
+    <div class="tt-lookup-overall">
+      <div class="tt-lookup-overall-pct" style="color:${ttSlPctColor(r.overall_pct)}">${r.overall_pct==null?'n/a':r.overall_pct+'%'}</div>
+      <div class="tt-lookup-overall-sub">${r.overall_activated}/${r.overall_owned} owned races</div>
+    </div>
+  </div>`;
+  if(r.note){
+    html+=`<div class="tt-empty">${r.note}</div>`;
+  } else {
+    html+=`<table class="tt-planner"><thead><tr><th>Uma</th><th>Owned</th><th>Activated</th><th>Act%</th></tr></thead><tbody>`+
+      r.umas.map(u=>`<tr><td style="font-weight:600">${u.chara_name}</td><td>${u.owned}</td><td>${u.activated}</td>
+        <td style="font-weight:700;color:${ttSlPctColor(u.activation_pct)}">${u.activation_pct}%</td></tr>`).join('') +
+      `</tbody></table>`;
+  }
+  result.innerHTML=html;
+}
+
+// ── TT Stadium / Track & Condition ────────────────────
+function ttStadiumSetSort(key){
+  if(TT_STADIUM_SORT_KEY===key) TT_STADIUM_SORT_DIR*=-1;
+  else{TT_STADIUM_SORT_KEY=key;TT_STADIUM_SORT_DIR=1;}
+  ttRenderStadiumTable();
+}
+
+function ttStadiumSortValue(row,key){
+  if(key==='distance_category') return TT_CATEGORY_ORDER[row.distance_category]??99;
+  if(key==='trial_round') return (row.trial_ts||0)*10+(row.round||0);
+  if(key==='my_gates'){
+    const gs=(row.my_gates||[]).map(g=>g.frame_order).filter(g=>g!=null);
+    return gs.length?Math.min(...gs):99;
+  }
+  const v=row[key]; return v==null?'':v;
+}
+
+function ttCatPillClass(cat){
+  if(!cat) return 'tt-pill tt-pill-cloudy';
+  const c=cat.toLowerCase();
+  if(c==='sprint') return 'tt-pill tt-pill-sunny';
+  if(c==='mile') return 'tt-pill tt-pill-good';
+  if(c==='medium') return 'tt-pill tt-pill-turf';
+  if(c==='long') return 'tt-pill tt-pill-rain';
+  if(c==='dirt') return 'tt-pill tt-pill-dirt';
+  return 'tt-pill tt-pill-cloudy';
+}
+
+function ttPillClass(kind,value){
+  if(!value) return '';
+  const v=String(value).toLowerCase();
+  if(kind==='surface') return v==='turf'?'tt-pill tt-pill-turf':'tt-pill tt-pill-dirt';
+  if(kind==='weather'){
+    if(v==='sunny') return 'tt-pill tt-pill-sunny';
+    if(v==='cloudy') return 'tt-pill tt-pill-cloudy';
+    if(v==='rain') return 'tt-pill tt-pill-rain';
+    if(v==='snow') return 'tt-pill tt-pill-snow';
+  }
+  if(kind==='ground'){
+    if(v==='firm') return 'tt-pill tt-pill-firm';
+    if(v==='good') return 'tt-pill tt-pill-good';
+    if(v==='soft') return 'tt-pill tt-pill-soft';
+    if(v==='heavy') return 'tt-pill tt-pill-heavy';
+  }
+  return 'tt-pill tt-pill-cloudy';
+}
+
+function ttRenderTile(title,items,kind){
+  const max=Math.max(...items.map(i=>i.count),1);
+  const rows=items.slice(0,10).map(i=>`
+    <div class="tt-tile-row">
+      <span class="${kind?ttPillClass(kind,i.value):''}" style="min-width:62px;text-align:center;${kind?'':'color:var(--txt);font-weight:600'}">${i.value}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${(i.count/max*100).toFixed(1)}%"></div></div>
+      <span class="pct">${i.pct}%</span>
+      <span class="count">${i.count}</span>
+    </div>`).join('');
+  return `<div class="tt-tile"><div class="tt-tile-title">${title}</div>${rows}</div>`;
+}
+
+function ttRenderCategoryTabs(s){
+  const wrap=$('#tt-stadium-cats');
+  const grand=s.grand_total_rounds||0;
+  const all=[{value:'All',count:grand,pct:100}];
+  const cats=all.concat(s.categories||[]);
+  wrap.innerHTML=cats.map(c=>{
+    const isActive=(c.value==='All'&&!TT_STADIUM_CAT)||c.value===TT_STADIUM_CAT;
+    return `<button class="tt-cat-pill ${isActive?'active':''}" onclick="ttSelectCategory('${c.value}')">
+      ${c.value}<span class="cat-count">${c.count}</span></button>`;
+  }).join('');
+}
+
+function ttSelectCategory(cat){
+  TT_STADIUM_CAT=(cat==='All')?null:cat;
+  ttLoadStadium();
+}
+
+function ttRenderStadiumSummary(s){
+  ttRenderCategoryTabs(s);
+  const wrap=$('#tt-stadium-summary');
+  if(!s.total_rounds){
+    wrap.innerHTML=`<div class="tt-empty" style="grid-column:1/-1">
+      <div style="font-size:14px;color:var(--mut);margin-bottom:8px">${TT_STADIUM_CAT?'No rounds in this category yet':'No stadium data yet'}</div>
+      <div>${TT_STADIUM_CAT?'Try a different distance bucket.':'Capture a Team Trial session first.'}</div></div>`;
+    return;
+  }
+
+  const trackMax=Math.max(...s.tracks.map(t=>t.count),1);
+  const tracksHtml=s.tracks.slice(0,10).map(t=>`
+    <div class="tt-tile-row">
+      <span class="label" style="font-weight:600">${t.track} <span class="muted" style="font-weight:400">${t.distance}m ${t.surface}</span></span>
+      <div class="bar-wrap"><div class="bar" style="width:${(t.count/trackMax*100).toFixed(1)}%"></div></div>
+      <span class="pct">${t.pct}%</span>
+      <span class="count">${t.count}</span>
+    </div>`).join('');
+  const tracksTile=`<div class="tt-tile" style="grid-column:span 2"><div class="tt-tile-title">Top tracks (${s.tracks.length} unique)</div>${tracksHtml}</div>`;
+
+  const gateMax=Math.max(...s.gates.map(g=>g.pct),1);
+  const gatesHtml=`<div class="tt-gate-grid">${s.gates.map(g=>`<div class="tt-gate-cell">
+    <div class="g-num">G${g.gate}</div><div class="g-pct">${g.pct}%</div>
+    <div class="g-bar" style="width:${(g.pct/gateMax*100).toFixed(1)}%"></div></div>`).join('')}</div>`;
+  const gatesTile=`<div class="tt-tile" style="grid-column:span 2"><div class="tt-tile-title">Starting gate distribution (your umas)</div>
+    ${gatesHtml}<div class="tt-status-line" style="margin-top:8px">Uniform expected ≈ 8.33% per gate.</div></div>`;
+
+  wrap.innerHTML=tracksTile+gatesTile
+    +ttRenderTile('Weather',s.weather,'weather')
+    +ttRenderTile('Ground condition',s.ground,'ground')
+    +ttRenderTile('Surface',s.surface,'surface')
+    +ttRenderTile('Handedness',s.handedness,null)
+    +ttRenderTile('Season',s.season,null)
+    +ttRenderTile('Distance · Category',s.distance,null);
+}
+
+function ttRenderStadiumTable(){
+  if(!TT_STADIUM_DATA) return;
+  const q=($('#tt-stadium-search').value||'').toLowerCase().trim();
+  let rows=TT_STADIUM_DATA.rows.filter(r=>{
+    if(TT_STADIUM_CAT&&r.distance_category!==TT_STADIUM_CAT) return false;
+    if(!q) return true;
+    return [r.track,r.distance_category,r.weather,r.ground_condition,r.surface,r.season,r.handedness,String(r.distance)]
+      .some(v=>v&&String(v).toLowerCase().includes(q));
+  });
+
+  const cols=[
+    {key:'trial_round',label:'Trial / Round'},
+    {key:'distance_category',label:'Category'},
+    {key:'track',label:'Track'},
+    {key:'distance',label:'Dist',cls:'num'},
+    {key:'surface',label:'Surface'},
+    {key:'handedness',label:'Dir'},
+    {key:'inout',label:'I/O'},
+    {key:'weather',label:'Weather'},
+    {key:'ground_condition',label:'Ground'},
+    {key:'season',label:'Season'},
+    {key:'my_gates',label:'My gates',cls:'num'},
+  ];
+  const arrow=k=>TT_STADIUM_SORT_KEY===k?(TT_STADIUM_SORT_DIR>0?' ↑':' ↓'):'';
+  $('#tt-stadium-head').innerHTML=cols.map(c=>
+    `<th class="${c.cls||''}" style="cursor:pointer;user-select:none" onclick="ttStadiumSetSort('${c.key}')" title="Click to sort">${c.label}${arrow(c.key)}</th>`
+  ).join('');
+
+  rows=rows.slice().sort((a,b)=>{
+    let av=ttStadiumSortValue(a,TT_STADIUM_SORT_KEY),bv=ttStadiumSortValue(b,TT_STADIUM_SORT_KEY);
+    let cmp;
+    if(typeof av==='number'&&typeof bv==='number') cmp=av-bv;
+    else cmp=String(av).localeCompare(String(bv));
+    if(cmp!==0) return cmp*TT_STADIUM_SORT_DIR;
+    return (a.distance??0)-(b.distance??0)||((a.trial_ts||0)-(b.trial_ts||0))||((a.round||0)-(b.round||0));
+  });
+
+  $('#tt-stadium-count').textContent=rows.length===TT_STADIUM_DATA.rows.length
+    ?`${rows.length} rounds`:`${rows.length} of ${TT_STADIUM_DATA.rows.length} rounds`;
+
+  $('#tt-stadium-tbody').innerHTML=rows.map(r=>{
+    const ts=r.trial_ts?new Date(r.trial_ts*1000):null;
+    const tsLabel=ts?ts.toISOString().slice(0,10):'';
+    const gates=(r.my_gates||[]).map(g=>g.frame_order).filter(g=>g!=null).sort((a,b)=>a-b).join(', ');
+    const catCls=ttCatPillClass(r.distance_category);
+    return `<tr>
+      <td class="muted">${tsLabel} · R${r.round}</td>
+      <td><span class="${catCls}">${r.distance_category||'—'}</span></td>
+      <td><b>${r.track||'—'}</b></td>
+      <td class="num">${r.distance??''}</td>
+      <td><span class="${ttPillClass('surface',r.surface)}">${r.surface||''}</span></td>
+      <td>${r.handedness||''}</td>
+      <td class="muted">${r.inout||''}</td>
+      <td><span class="${ttPillClass('weather',r.weather)}">${r.weather||''}</span></td>
+      <td><span class="${ttPillClass('ground',r.ground_condition)}">${r.ground_condition||''}</span></td>
+      <td class="muted">${r.season||''}</td>
+      <td class="num"><b>${gates||'—'}</b></td>
+    </tr>`;
+  }).join('');
+}
+
+async function ttLoadStadium(){
+  try{
+    const qs=TT_STADIUM_CAT?`?category=${encodeURIComponent(TT_STADIUM_CAT)}`:'';
+    const r=await fetch('/api/stadium'+qs).then(r=>r.json());
+    TT_STADIUM_DATA=r;
+    ttRenderStadiumSummary(r.summary||{total_rounds:0,grand_total_rounds:0,categories:[]});
+    ttRenderStadiumTable();
+  }catch(e){}
+}
+
+async function ttImportStadiumCsv(input){
+  const file=input.files&&input.files[0];
+  if(!file) return;
+  const countEl=$('#tt-stadium-count');
+  countEl.textContent='Importing '+file.name+'…';
+  const fd=new FormData();
+  fd.append('file',file);
+  try{
+    const r=await fetch('/api/stadium/import',{method:'POST',body:fd}).then(r=>r.json());
+    if(r.error) countEl.textContent='Import failed: '+r.error;
+    else{
+      countEl.textContent=`Imported ${r.saved} new trials (${r.duplicates} dupes skipped)`;
+      TT_STADIUM_CAT=null;
+      await ttLoadStadium();
+    }
+  }catch(e){countEl.textContent='Import failed: '+e.message;}
+  finally{input.value='';}
+}
+
+// ── TT Capture control ───────────────────────────────
+function ttFmtElapsed(s){
+  const m=Math.floor(s/60),ss=String(s%60).padStart(2,'0');
+  return `${m}:${ss}`;
+}
+
+async function ttRefreshCaptureStatus(){
+  try{
+    const s=await fetch('/api/capture/status').then(r=>r.json());
+    TT_CAPTURING=!!s.capturing;
+    const btn=$('#tt-capture-btn');
+    const badge=$('#tt-capture-status');
+    if(TT_CAPTURING){
+      btn.textContent='⏸ Stop & process';
+      btn.classList.add('recording');
+      badge.style.display='';
+      badge.textContent=`Capturing ${ttFmtElapsed(s.elapsed||0)} — play your trials`;
+    } else {
+      btn.textContent='▶ Start capture';
+      btn.classList.remove('recording');
+      badge.style.display='none';
+    }
+  }catch(e){}
+}
+
+async function ttToggleCapture(){
+  const btn=$('#tt-capture-btn');
+  if(!TT_CAPTURING){
+    btn.disabled=true;btn.textContent='… starting';
+    const r=await fetch('/api/capture/start',{method:'POST'}).then(r=>r.json()).catch(e=>({ok:false,error:e.message}));
+    btn.disabled=false;
+    if(!r.ok) alert('Could not start capture:\n'+(r.error||'unknown'));
+    await ttRefreshCaptureStatus();
+    if(TT_CAPTURING){
+      const badge=$('#tt-capture-status');
+      badge.textContent='Capturing — now open Uma Musume and play. Click Stop when done.';
+    }
+  } else {
+    btn.disabled=true;btn.textContent='… stopping & processing';
+    const r=await fetch('/api/capture/stop',{method:'POST'}).then(r=>r.json()).catch(e=>({ok:false,error:e.message}));
+    btn.disabled=false;
+    await ttRefreshCaptureStatus();
+    const a=r.analyze||{};
+    if(a.added>0) alert(`Done! Added ${a.added} new trial(s).`);
+    else if(a.nothing_new) alert('Capture stopped. No new trials found.');
+    else if(a.error) alert('Capture stopped, but processing failed:\n'+a.error);
+    ttLoad();
+    ttLoadStadium();
+  }
+}
+
+async function ttProcessCaptures(){
+  const r=await fetch('/api/process',{method:'POST'}).then(r=>r.json()).catch(e=>({ok:false,error:e.message}));
+  if(r.added>0) alert(`Added ${r.added} new trial(s).`);
+  else if(r.nothing_new) alert('No new trials to add.');
+  else if(r.error) alert('Processing failed:\n'+r.error);
+  ttLoad();
+  ttLoadStadium();
+}
+
+// Start polling capture status (only when TT tabs are loaded)
+setInterval(()=>{ if(TT_LOADED) ttRefreshCaptureStatus(); }, 5000);
+
+async function bootstrap(){
+  // reset any stuck capturing/fetching from a previous tab/session
+  try{ await fetch('/api/setup/reset',{method:'POST'}); }catch(e){}
+  const s=await (await fetch('/api/setup/status')).json();
+  if(!s.has_trace){ SETUP.mode='setup'; await setupRefresh(); setupShow(); }
+  else {
+    await load(); renderWant();
+    // restore previous workflow after a Update & restart
+    if(sessionStorage.getItem(PENDING_KEY)){
+      sessionStorage.removeItem(PENDING_KEY);
+      const raw = sessionStorage.getItem(STATE_KEY);
+      if(raw){
+        sessionStorage.removeItem(STATE_KEY);
+        try{ await restoreUIState(JSON.parse(raw)); }catch(e){ console.warn('restore failed', e); }
+      }
+    }
+  }
+  // background poll for new commits on origin
+  checkUpdateAvailable();
+  setInterval(checkUpdateAvailable, 5 * 60 * 1000);
+}
+bootstrap();
+</script>
+</body>
+</html>
