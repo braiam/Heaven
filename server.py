@@ -244,12 +244,34 @@ _INHERITANCE_BASE = {
     # base inheritance odds per star (no compatibility) per Polaris / Cygames
     # patent, documented in Crazyfellow's Parenting & Gene guide (page 87).
     # multiplied by (1 + individual_compatibility / 100) at proc time.
+    # Blue stats added per uma.moe & Hakuraku (can fail to proc, not guaranteed).
+    "blue":     {1: 0.70, 2: 0.80, 3: 0.90},
+    "stat":     {1: 0.70, 2: 0.80, 3: 0.90},    # alias
     "aptitude": {1: 0.01, 2: 0.03, 3: 0.05},
     "unique":   {1: 0.05, 2: 0.10, 3: 0.15},
     "skill":    {1: 0.03, 2: 0.06, 3: 0.09},
     "scenario": {1: 0.03, 2: 0.06, 3: 0.09},
     "race":     {1: 0.01, 2: 0.02, 3: 0.03},
 }
+
+# ── White spark generation chance (Hakuraku piecewise fit, p≥0.79) ───────
+# Predicts probability a skill becomes a factor based on lineage count.
+# Piecewise-at-2: smaller boost for first 1-2 copies, larger after.
+_WHITE_SPARK_GEN = {
+    "white":  {"base": 0.20, "boost_low": 0.020, "boost_high": 0.0275},
+    "circle": {"base": 0.25, "boost_low": 0.025, "boost_high": 0.034375},
+    "gold":   {"base": 0.40, "boost_low": 0.040, "boost_high": 0.055},
+}
+
+def white_spark_gen_chance(tier: str, lineage_count: int) -> float:
+    """Probability a skill becomes a white spark, given lineage copies.
+    tier: 'white' (plain), 'circle' (double circle), 'gold'.
+    Uses Hakuraku's piecewise fit (chi² p≥0.79 on 100K+ observations)."""
+    cfg = _WHITE_SPARK_GEN.get(tier, _WHITE_SPARK_GEN["white"])
+    n = max(0, lineage_count)
+    if n <= 2:
+        return cfg["base"] + cfg["boost_low"] * n
+    return cfg["base"] + cfg["boost_low"] * 2 + cfg["boost_high"] * (n - 2)
 
 def inspiration_pct(cat, total_stars):
     """Approximate cumulative inheritance proc chance for a factor across
@@ -314,61 +336,125 @@ def _binom_ge(k: int, n: int, p: float) -> float:
     return 1 - total
 
 
-def compute_spark_odds(p1: dict, p2: dict, compatibility: dict) -> dict:
+def compute_spark_odds(p1: dict, p2: dict, compatibility: dict,
+                       trainee_card: int | None = None) -> dict:
     """Compute per-spark proc odds for a breeding pair.
+
+    Improved model (Hakuraku/Crazyfellow individual inheritance theory):
+      - Each of the 6 tree entities (P1, P1-GP1, P1-GP2, P2, P2-GP1, P2-GP2)
+        has its own individual affinity.
+      - Parent individual affinity  = CR(t,p) + WSB(p) + RL2(p1,p2)
+      - GP individual affinity      = RL3(t, parent, gp) + |parent ∩ gp| saddles
+      - Blue stat procs included (70/80/90% base, can fail).
+      - Per-event proc clamped to min(100%) per Cygames patent.
 
     Args:
         p1, p2: parsed uma dicts (own_sparks, grandparents, etc.)
         compatibility: result of affinity.compatibility_from_parsed()
+        trainee_card: card_id of the trainee (needed for individual affinities)
 
-    Returns dict with lists for full_run and first_only, each entry:
-      {name, type, cat, stars_p1, stars_p2, p1_rate, p2_rate,
-       ge1_pct, ge2_pct}
+    Returns dict with lists for full_run and first_only.
     """
-    # Per-parent compatibility = CR(trainee, parent) + WSB(parent)
-    compat_p1 = compatibility.get("p1_chain", 0)
-    compat_p2 = compatibility.get("p2_chain", 0)
+    import affinity as _aff
 
-    # Collect all sparks from both parents
-    sparks = {}  # name -> {cat, type, stars_p1, stars_p2}
+    # ── Individual affinities per entity ───────────────────────────────
+    if trainee_card:
+        indiv = _aff.individual_affinities_from_parsed(trainee_card, p1, p2)
+    else:
+        # Fallback: use parent chain + cross (old behavior, slightly less accurate)
+        cross = compatibility.get("cross", 0)
+        indiv = {
+            "p1": compatibility.get("p1_chain", 0) + cross,
+            "p2": compatibility.get("p2_chain", 0) + cross,
+        }
+
+    src_aff = {
+        "p1":     indiv.get("p1", 0),
+        "p1_gp1": indiv.get("p1_gp1", 0),
+        "p1_gp2": indiv.get("p1_gp2", 0),
+        "p2":     indiv.get("p2", 0),
+        "p2_gp1": indiv.get("p2_gp1", 0),
+        "p2_gp2": indiv.get("p2_gp2", 0),
+    }
+
+    # ── Collect sparks from all 6 sources ──────────────────────────────
+    sparks = {}   # name -> {name, type, cat, sources: {src_key: stars}}
+
+    def _add(sp, src_key):
+        s = sparks.setdefault(sp["name"], {
+            "name": sp["name"], "type": sp["type"],
+            "cat": sp.get("category", sp["type"]),
+            "sources": {}
+        })
+        s["sources"][src_key] = s["sources"].get(src_key, 0) + sp["stars"]
+
     for sp in p1.get("own_sparks", []):
-        s = sparks.setdefault(sp["name"], {"name": sp["name"], "type": sp["type"],
-                                           "cat": sp.get("category", sp["type"]),
-                                           "stars_p1": 0, "stars_p2": 0})
-        s["stars_p1"] += sp["stars"]
+        _add(sp, "p1")
     for sp in p2.get("own_sparks", []):
-        s = sparks.setdefault(sp["name"], {"name": sp["name"], "type": sp["type"],
-                                           "cat": sp.get("category", sp["type"]),
-                                           "stars_p1": 0, "stars_p2": 0})
-        s["stars_p2"] += sp["stars"]
+        _add(sp, "p2")
 
-    results = {}  # mode -> list
+    for g in p1.get("grandparents", []):
+        pid = g.get("position_id")
+        key = "p1_gp1" if pid == 10 else "p1_gp2" if pid == 20 else None
+        if key:
+            for sp in g.get("sparks", []):
+                _add(sp, key)
+
+    for g in p2.get("grandparents", []):
+        pid = g.get("position_id")
+        key = "p2_gp1" if pid == 10 else "p2_gp2" if pid == 20 else None
+        if key:
+            for sp in g.get("sparks", []):
+                _add(sp, key)
+
+    # ── Compute odds ───────────────────────────────────────────────────
+    results = {}
     for mode, n_events in [("full_run", _EVENTS_FULL_RUN), ("first_only", _EVENTS_FIRST)]:
         entries = []
         for sp in sparks.values():
             cat = sp["cat"]
-            # Skip stat factors (blue) -- they provide base bonuses, not procs
-            if cat in ("stat", "blue"):
+            # Normalise blue alias
+            rate_cat = "blue" if cat in ("stat", "blue") else cat
+
+            # Per-source rate with individual affinity
+            source_rates = []
+            for sk, stars in sp["sources"].items():
+                if stars <= 0:
+                    continue
+                base = _base_rate(rate_cat, stars)
+                if base <= 0:
+                    continue
+                aff = src_aff.get(sk, 0)
+                rate = min(1.0, base * (1 + aff / 100))   # clamp 100%
+                source_rates.append(rate)
+
+            if not source_rates:
                 continue
-            # Each parent's factors proc independently
-            r1 = _base_rate(cat, sp["stars_p1"]) * (1 + compat_p1 / 100) if sp["stars_p1"] else 0
-            r2 = _base_rate(cat, sp["stars_p2"]) * (1 + compat_p2 / 100) if sp["stars_p2"] else 0
-            # Combined per-event: P(at least one parent procs this spark)
-            # = 1 - (1 - r1)(1 - r2)
-            combined = 1 - (1 - r1) * (1 - r2)
+
+            # Combined per-event: P(≥1 source procs) = 1 − Π(1−rᵢ)
+            miss = 1.0
+            for r in source_rates:
+                miss *= (1 - r)
+            combined = 1 - miss
+
             ge1 = _binom_ge(1, n_events, combined)
             ge2 = _binom_ge(2, n_events, combined)
+
+            # Total stars grouped by parent side (for display)
+            s_p1 = sum(sp["sources"].get(k, 0) for k in ("p1", "p1_gp1", "p1_gp2"))
+            s_p2 = sum(sp["sources"].get(k, 0) for k in ("p2", "p2_gp1", "p2_gp2"))
+
             entries.append({
                 "name": sp["name"],
                 "type": sp["type"],
-                "cat": cat,
-                "stars_p1": sp["stars_p1"],
-                "stars_p2": sp["stars_p2"],
+                "cat": rate_cat,
+                "stars_p1": s_p1,
+                "stars_p2": s_p2,
                 "ge1_pct": round(ge1 * 100, 2),
                 "ge2_pct": round(ge2 * 100, 2) if ge2 > 0.001 else None,
             })
-        # Sort: aptitude first, then unique, then skill/scenario/race, within each by ge1 desc
-        type_order = {"aptitude": 0, "pink": 0, "unique": 1, "green": 1,
+
+        type_order = {"blue": -1, "aptitude": 0, "pink": 0, "unique": 1, "green": 1,
                       "skill": 2, "white": 2, "scenario": 2, "race": 3}
         entries.sort(key=lambda e: (type_order.get(e["cat"], 9), -e["ge1_pct"]))
         results[mode] = entries
@@ -636,6 +722,7 @@ def aggregate(rows: list[dict]) -> dict:
             },
             "never_activated_n":   len(never_activated),
             "always_activated_n":  len(always_activated),
+            "sv":                  master.compute_uma_sv(owned_set),
         })
 
     # Compute Gap to Top (avg score)
@@ -935,6 +1022,7 @@ class BreedReq(BaseModel):
     breed_style: str | None = None      # "Front Runner", "Pace Chaser", etc.
     breed_distance: str | None = None   # "Sprint", "Mile", "Medium", "Long"
     strict_act_pct: float | None = None # threshold, e.g. 60.0
+    use_eproc: bool = True              # True=proc-based scoring, False=legacy weighted
 
 
 @app.post("/api/breed")
@@ -951,7 +1039,8 @@ def api_breed(req: BreedReq):
             sw = compute_skill_weights(act_data, req.breed_style, req.strict_act_pct)
 
     res = heir.optimize_breed(ds, req.target, req.want, req.w_affinity, req.w_spark,
-                              top=15, allowed_ids=req.allowed_ids, skill_weights=sw)
+                              top=15, allowed_ids=req.allowed_ids, skill_weights=sw,
+                              use_eproc=req.use_eproc)
     if sw:
         res["weighted"] = True
     return res
@@ -1040,8 +1129,8 @@ def api_pair(req: PairReq):
         "shared_g1": 0,
         "win_bonus": comp.get("wsb_p1", 0) + comp.get("wsb_p2", 0),
     }
-    # Spark proc odds (hakuraku-style)
-    spark_odds = compute_spark_odds(p1, p2, comp)
+    # Spark proc odds (hakuraku-style, individual affinity per entity)
+    spark_odds = compute_spark_odds(p1, p2, comp, trainee_card=req.target)
 
     return {"affinity": aff, "target_name": master.card_name(req.target),
             "p1": brief(p1), "p2": brief(p2), "agg": agg_list,

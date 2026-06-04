@@ -273,3 +273,29 @@ def skill_costs():
 
 def skill_cost(skill_id: int) -> int | None:
     return skill_costs().get(skill_id)
+
+
+# ── Skill Value (SV) helpers ───────────────────────────────────────────────
+
+@lru_cache(maxsize=1)
+def _skill_rarity_map():
+    """skill_id -> rarity (1=white, 2=gold) from skill_data."""
+    cur = _conn().cursor()
+    return {int(r[0]): int(r[1] or 0) for r in
+            cur.execute("SELECT id, rarity FROM skill_data")}
+
+
+def skill_sv(skill_id: int) -> int:
+    """Skill Value points.
+    rarity 2 (gold) = 12 pts.
+    rarity 1 (white), 3 (green/inherent) = 5 pts.
+    rarity 4, 5 (unique / unique evo) = 0 pts (excluded)."""
+    rarity = _skill_rarity_map().get(int(skill_id), 0)
+    if rarity in (4, 5):   # unique skills don't count
+        return 0
+    return 12 if rarity == 2 else 5
+
+
+def compute_uma_sv(skill_ids) -> int:
+    """Sum of SV points for a list of skill_ids (unique skills excluded)."""
+    return sum(skill_sv(sid) for sid in skill_ids)

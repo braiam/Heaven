@@ -146,6 +146,65 @@ def compatibility(trainee_chara: int, p1: dict, p2: dict,
     }
 
 
+def wsb_per_gp(parent_saddles: list[int],
+               gp_saddles: list[list[int]]) -> list[int]:
+    """WSB split per grandparent: returns per-GP overlap counts."""
+    ps = set(parent_saddles or [])
+    return [len(ps & set(gp_wins or [])) for gp_wins in (gp_saddles or [])[:2]]
+
+
+def individual_affinities_from_parsed(trainee_card: int, p1: dict, p2: dict) -> dict:
+    """Compute individual affinity for all 6 tree entities.
+
+    Per Hakuraku/Crazyfellow individual inheritance theory (validated 100 trials):
+      Parent indiv  = CR(t,p) + WSB(p) + RL2(p1,p2)
+      GP indiv      = RL3(t, parent, gp) + |parent_saddles ∩ gp_saddles|
+
+    Returns keys: p1, p2, p1_gp1, p1_gp2, p2_gp1, p2_gp2.
+    """
+    t = master.chara_id_of(trainee_card)
+    c1 = master.chara_id_of(p1["card_id"])
+    c2 = master.chara_id_of(p2["card_id"])
+    gps1 = [master.chara_id_of(g["card_id"])
+            for g in p1.get("grandparents", []) if g.get("card_id")]
+    gps2 = [master.chara_id_of(g["card_id"])
+            for g in p2.get("grandparents", []) if g.get("card_id")]
+
+    cr1 = calc_relation(t, c1, gps1)
+    cr2 = calc_relation(t, c2, gps2)
+    cross = rl2(c1, c2)
+    wsb1 = wsb_from_parsed(p1)
+    wsb2 = wsb_from_parsed(p2)
+
+    # Parent individual = CR(t,p) + WSB(p) + RL2(p1,p2)
+    result = {
+        "p1": cr1 + wsb1 + cross,
+        "p2": cr2 + wsb2 + cross,
+    }
+
+    # Per-GP WSB decomposition
+    p1_wsb = wsb_per_gp(
+        p1.get("win_saddle_id_array") or [],
+        [g.get("win_saddle_id_array") or [] for g in p1.get("grandparents", [])]
+    )
+    p2_wsb = wsb_per_gp(
+        p2.get("win_saddle_id_array") or [],
+        [g.get("win_saddle_id_array") or [] for g in p2.get("grandparents", [])]
+    )
+
+    # GP individual = RL3(t, parent, gp) + |parent ∩ gp|
+    for i, gp_c in enumerate(gps1[:2]):
+        rl3_val = rl3(t, c1, gp_c) if gp_c else 0
+        wsb_val = p1_wsb[i] if i < len(p1_wsb) else 0
+        result[f"p1_gp{i+1}"] = rl3_val + wsb_val
+    for i, gp_c in enumerate(gps2[:2]):
+        rl3_val = rl3(t, c2, gp_c) if gp_c else 0
+        wsb_val = p2_wsb[i] if i < len(p2_wsb) else 0
+        result[f"p2_gp{i+1}"] = rl3_val + wsb_val
+
+    return result
+
+
 def compatibility_from_parsed(trainee_card: int, p1: dict, p2: dict) -> dict:
     """Convenience: takes parse_chara dicts (with card_id, grandparents).
     Computes WSB offline from the parsed data (no bridge needed).

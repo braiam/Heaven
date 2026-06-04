@@ -329,28 +329,25 @@
   .combo.clickable:hover::before{opacity:1}
   .combo .cpair .port{border-radius:50%;border:2px solid var(--line)}
   .combo .cmeta{display:flex;align-items:center;gap:8px}
-  /* ---- spark proc odds (hakuraku-style) ---- */
+  /* ---- spark proc odds (compact) ---- */
   .odds-toggle{display:flex;gap:4px}
   .odds-btn{font-size:11px !important;padding:3px 10px !important;border-radius:5px !important}
   .odds-btn.active{background:var(--accent) !important;color:#fff !important;border-color:var(--accent) !important}
-  .odds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 12px;margin-top:8px;max-height:420px;overflow-y:auto;padding-right:4px}
-  .odds-type-header{grid-column:1/-1;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
-                    padding:6px 0 2px;border-bottom:1px solid var(--line);margin-top:4px}
+  .odds-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px 8px;margin-top:6px}
+  .odds-type-header{grid-column:1/-1;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+                    padding:4px 0 1px;border-bottom:1px solid var(--line);margin-top:2px}
   .odds-type-header:first-child{margin-top:0}
-  .odds-row{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:6px;
-            transition:border-color .15s}
+  .odds-row{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:3px 6px;display:flex;align-items:center;gap:4px;
+            transition:border-color .15s;min-height:0}
   .odds-row:hover{border-color:#3a3d46}
-  .odds-name{flex:1;min-width:0;font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .odds-star{font-size:9px;padding:1px 4px;border-radius:3px;margin-left:2px;font-weight:700}
+  .odds-name{flex:1;min-width:0;font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .odds-star{font-size:8px;padding:0 3px;border-radius:3px;margin-left:1px;font-weight:700}
   .odds-star-p1{background:#1c2840;color:var(--accent)}
   .odds-star-p2{background:#2a1c30;color:var(--pink)}
-  .odds-bar-wrap{width:80px;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;flex-shrink:0;border:1px solid var(--line)}
-  .odds-bar{height:100%;border-radius:3px;transition:width .4s ease}
-  .odds-val{font-size:12px;font-weight:800;min-width:50px;text-align:right;flex-shrink:0}
-  .odds-ge2-wrap{min-width:56px;flex-shrink:0}
-  .odds-ge2{font-size:9.5px;color:var(--mut);white-space:nowrap}
-  @media(max-width:800px){.odds-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:500px){.odds-grid{grid-template-columns:1fr}}
+  .odds-val{font-size:11px;font-weight:800;min-width:38px;text-align:right;flex-shrink:0}
+  .odds-ge2{font-size:8.5px;color:var(--mut);white-space:nowrap;min-width:44px;flex-shrink:0}
+  @media(max-width:900px){.odds-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:600px){.odds-grid{grid-template-columns:repeat(2,1fr)}}
 
   /* ============================================================
      TEAM TRIALS ANALYZER STYLES (merged from TTAnalyzer dashboard)
@@ -388,16 +385,21 @@
   .tt-player-cell-value{font-size:15px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums}
 
   /* TT race analysis table */
-  .tt-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+  .tt-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--line);
+    scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .tt-table-wrap::-webkit-scrollbar{height:8px}
+  .tt-table-wrap::-webkit-scrollbar-track{background:transparent}
+  .tt-table-wrap::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
   table.tt-race{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-  table.tt-race th,table.tt-race td{padding:11px 6px;border-bottom:1px solid var(--line);vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
-  table.tt-race th:first-child,table.tt-race td:first-child{padding-left:14px}
+  table.tt-race th,table.tt-race td{padding:11px 6px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+  table.tt-race th:first-child,table.tt-race td:first-child{padding-left:14px;position:sticky;left:0;z-index:3;background:var(--bg)}
+  table.tt-race th:first-child{background:var(--panel2)}
   table.tt-race th:last-child,table.tt-race td:last-child{padding-right:14px}
   table.tt-race th{font-size:10px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;font-weight:700;background:var(--panel2);text-align:right}
-  table.tt-race th:first-child{text-align:left;width:200px}
-  table.tt-race th.trial-col{width:var(--trial-col-w,62px);font-size:9.5px}
-  table.tt-race td.trial-col{font-size:12px}
-  table.tt-race th.stat-col{width:68px}
+  table.tt-race th:first-child{text-align:left;width:200px;min-width:200px}
+  table.tt-race th.trial-col{width:var(--trial-col-w,62px);max-width:var(--trial-col-w,62px);font-size:9.5px;overflow:hidden}
+  table.tt-race td.trial-col{font-size:12px;width:var(--trial-col-w,62px);max-width:var(--trial-col-w,62px);overflow:hidden;text-overflow:ellipsis}
+  table.tt-race th.stat-col{width:62px}
   table.tt-race th.verdict-col{width:96px;text-align:center}
   table.tt-race td.verdict-col{text-align:center}
   table.tt-race td:first-child{text-align:left}
@@ -407,13 +409,24 @@
   table.tt-race td.muted{color:var(--mut)}
 
   /* Uma cell in TT race table */
-  .tt-uma-cell{display:flex;align-items:center;gap:12px;height:50px}
-  .tt-uma-icon-wrap{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#2a2335,#1a1525);flex-shrink:0;
-    border:2px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--mut);position:relative}
+  .tt-uma-cell{display:flex;align-items:center;gap:10px;height:62px}
+  .tt-uma-badge{position:relative;width:58px;height:58px;flex-shrink:0}
+  .tt-uma-icon-wrap{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#2a2335,#1a1525);
+    border:3px solid #fbbf24;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:16px;color:var(--mut);position:relative;
+    box-shadow:0 0 8px rgba(251,191,36,0.3),inset 0 0 12px rgba(0,0,0,0.4)}
   .tt-uma-icon-wrap>span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:0}
   .tt-uma-icon{width:100%;height:100%;object-fit:cover;object-position:50% 0%;display:block;position:relative;z-index:1}
   .tt-uma-name{font-weight:700;font-size:13px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
   .tt-uma-id{font-size:10px;color:var(--mut);margin-top:3px}
+
+  /* SV badge on uma icon */
+  .tt-sv-badge{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);z-index:2;
+    font-size:11px;font-weight:900;padding:0 6px;border-radius:8px;line-height:1.5;
+    background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;
+    border:2px solid var(--bg);letter-spacing:0.3px;pointer-events:none;
+    box-shadow:0 2px 6px rgba(0,0,0,0.5),0 0 10px rgba(251,191,36,0.25);
+    text-shadow:0 1px 2px rgba(0,0,0,0.6);white-space:nowrap}
 
   /* Score colors */
   .tt-score-good{color:var(--ok)} .tt-score-warn{color:#ffce4d} .tt-score-bad{color:#ff6e7e}
@@ -762,7 +775,7 @@
   <div class="card breed-top">
     <div class="breed-header">
       <span class="breed-label">BREED OPTIMIZER</span>
-      <span class="muted" style="font-size:11px">Find the best parent pairs by affinity + spark match</span>
+      <span class="muted" style="font-size:11px">Find the best parent pairs by expected proc chance</span>
     </div>
     <div class="breed-grid">
       <div class="breed-field breed-target-field">
@@ -775,14 +788,7 @@
         <input id="target" type="hidden">
         <datalist id="targetlist"></datalist>
       </div>
-      <div class="breed-field">
-        <label class="breed-fl">Affinity weight</label>
-        <input id="wAff" type="number" step="0.5" value="2" class="breed-input breed-num">
-      </div>
-      <div class="breed-field">
-        <label class="breed-fl">Spark weight</label>
-        <input id="wSpark" type="number" step="0.5" value="1" class="breed-input breed-num">
-      </div>
+      <!-- legacy weight fields removed: eproc model has affinity inside proc chances -->
       <div class="breed-field">
         <label class="breed-fl">Parent pool</label>
         <select id="poolTag" class="breed-input"><option value="">— all —</option></select>
@@ -888,11 +894,14 @@
         <span class="tt-status-line">Show:</span>
         <select id="tt-filter-show" class="tt-filter-input" style="width:auto;padding-right:22px" oninput="ttRender()" title="How many recent trials to show">
           <option value="0" selected>All</option>
+          <option value="5">Last 5</option>
           <option value="10">Last 10</option>
           <option value="20">Last 20</option>
           <option value="30">Last 30</option>
           <option value="50">Last 50</option>
         </select>
+        <span class="tt-status-line" style="margin-left:8px">Col:</span>
+        <input type="range" id="tt-col-width" min="28" max="72" value="62" style="width:60px;vertical-align:middle;accent-color:#fbbf24" oninput="document.documentElement.style.setProperty('--trial-col-w',this.value+'px')" title="Trial column width">
         <span class="tt-status-line" style="margin-left:8px">Act %:</span>
         <input type="number" id="tt-filter-act-min" min="0" max="100" value="0" step="5" class="tt-filter-input" placeholder="min" title="Min activation %" oninput="ttRender()">
         <span class="tt-status-line" style="opacity:0.5">—</span>
@@ -1709,7 +1718,7 @@ async function runBreed(){
   let allowed=null; const pt=$('#poolTag').value;
   if(pt) allowed=DATA.mine.filter(u=>(u.tags||[]).includes(pt)).map(u=>u.trained_chara_id);
   $('#ownRes').innerHTML='<span class=muted>computing...</span>';$('#rentRes').innerHTML='';
-  const breedBody = {target:t.card_id,want:WANT,w_affinity:+$('#wAff').value,w_spark:+$('#wSpark').value,allowed_ids:allowed};
+  const breedBody = {target:t.card_id,want:WANT,use_eproc:true,allowed_ids:allowed};
   const bStyle=$('#breedStyle').value, bDist=$('#breedDistance').value;
   if(bStyle) breedBody.breed_style = bStyle;
   if(bDist) breedBody.breed_distance = bDist;
@@ -1734,10 +1743,10 @@ function combo(c, idx){
       <span>${esc(c.p2.name)} <span class="rankb" style="font-size:9px;padding:1px 4px">${c.p2.rank_label||'R'+(c.p2.rank||'?')}</span></span>${own}
     </div>
     <div class="cmeta">
-      <b class="c-aff" style="font-size:14px">${c.affinity}</b>
-      <span class="muted" style="font-size:10px">affinity</span>
-      <span class="muted" style="font-size:11px;margin-left:8px">spark <b style="color:var(--fg)">${c.spark}</b></span>
-      ${c.win_bonus?'<span class="c-g1" style="font-size:12px">+'+c.win_bonus+' race</span>':''}
+      <b style="font-size:14px;color:var(--ok)">${c.eproc!=null?c.eproc+'%':c.obj}</b>
+      <span class="muted" style="font-size:10px">${c.eproc!=null?'avg proc'+(c.eproc_n?' ('+c.eproc_n+')':''):'score'}</span>
+      <span class="muted" style="font-size:11px;margin-left:8px">affinity <b style="color:var(--accent)">${c.affinity}</b></span>
+      ${c.eblue!=null?`<span class="muted" style="font-size:11px;margin-left:6px">blue <b style="color:var(--blue)">${c.eblue}%</b></span>`:''}
     </div>
     ${blue?`<div style="font-size:11px;margin-top:3px;color:var(--mut)">stats: ${blue}</div>`:''}
   </div>`;
@@ -1785,9 +1794,7 @@ function sparkOddsGrid(odds, mode){
     const hiName = oddsHi ? 'color:#f0d060;font-weight:600' : '';
     return `${header}<div class="odds-row" style="${hiStyle}">
       <div class="odds-name" style="${hiName}">${esc(s.name)} ${stars1}${stars2}</div>
-      <div class="odds-bar-wrap"><div class="odds-bar" style="width:${bar}%;background:${barColor}"></div></div>
-      <div class="odds-val">${s.ge1_pct}%</div>
-      ${ge2 ? `<div class="odds-ge2-wrap">${ge2}</div>` : '<div class="odds-ge2-wrap"></div>'}
+      <div class="odds-val" style="color:${barColor}">${s.ge1_pct}%</div>
     </div>`;
   }).join('');
 }
@@ -1817,10 +1824,8 @@ function openPairDetail(d){
       </div>
     </div>
     <div class="odds-grid" id="oddsGrid">${sparkOddsGrid(d.spark_odds, 'full_run')}</div>
-    <p class="muted" style="font-size:10px;margin-top:6px">
-      Chance of each spark firing at least once during inheritance. Higher affinity between parents and target = higher odds.
-      <b>Over a full run</b> = 3 events (1 initial inheritance + 2 mid-run inspirations). <b>First inheritance</b> = just the 1 starting event.
-      Stars show each parent's contribution (<span style="color:var(--accent)">blue</span> = P1, <span style="color:var(--pink)">pink</span> = P2). Based on Polaris/Cygames patent rates — treat as estimates.
+    <p class="muted" style="font-size:9px;margin-top:4px">
+      P(&ge;1 proc) per spark. <b>Full run</b> = 3 events. Stars: <span style="color:var(--accent)">P1</span> / <span style="color:var(--pink)">P2</span>. Individual affinity model (Hakuraku/Polaris).
     </p>` : '';
 
   $('#detailBody').innerHTML=`
@@ -1829,10 +1834,10 @@ function openPairDetail(d){
       <div class="dmeta">breeding <b>${esc(d.target_name)}</b> · <b class="c-aff">Affinity ${c.total}</b>${c.win_bonus?' · <span class="c-g1">+'+c.win_bonus+' race</span>':''}</div>
     </div><button class="ghost" id="dClose">Close ✕</button></div>
     ${oddsPanel}
-    <div class="seclab">Inherited factors (both parents combined)</div>
+    <details style="margin-top:8px"><summary class="seclab" style="cursor:pointer;user-select:none">Inherited factors + parent detail</summary>
     ${pairGrid(d.agg)}
-    <div class="dmain" style="margin-top:12px;gap:12px">${parentCol(d.p1,'Parent 1')}${parentCol(d.p2,'Parent 2')}</div>
-    <p class="muted" style="font-size:11px;margin-top:8px">% = approx inspiration proc (top 5 shown). "you" omitted (offspring is fresh).</p>`;
+    <div class="dmain" style="margin-top:8px;gap:8px">${parentCol(d.p1,'P1')}${parentCol(d.p2,'P2')}</div>
+    </details>`;
   $('#dClose').onclick=()=>{_BREED_HI=new Set();_BREED_HI_KW=[];$('#detail').classList.add('hide');};
   // Odds toggle
   if(hasOdds){
@@ -2141,8 +2146,7 @@ function captureUIState(){
     filters: FILTERS,
     breedTarget: $('#target').value,
     breedTargetCard: _breedTargetCard,
-    wAff: $('#wAff').value,
-    wSpark: $('#wSpark').value,
+    /* wAff/wSpark removed: eproc model */
     poolTag: $('#poolTag').value,
     breedStyle: $('#breedStyle').value,
     breedDistance: $('#breedDistance').value,
@@ -2176,8 +2180,7 @@ async function restoreUIState(s){
       p.classList.remove('hide');
     }
   }
-  if(s.wAff!=null) $('#wAff').value = s.wAff;
-  if(s.wSpark!=null) $('#wSpark').value = s.wSpark;
+  /* wAff/wSpark removed: eproc model */
   if(s.poolTag) $('#poolTag').value = s.poolTag;
   if(s.breedStyle) $('#breedStyle').value = s.breedStyle;
   if(s.breedDistance) $('#breedDistance').value = s.breedDistance;
@@ -2507,11 +2510,11 @@ function ttRender(){
   r.umas.forEach(u=>(u.trials||[]).forEach(t=>{if(t.trial_idx>_maxIdx) _maxIdx=t.trial_idx;}));
   const totalTrials=_maxIdx+1;
   const showN=parseInt($('#tt-filter-show')?.value||0)||0;
-  const visibleTrials=(showN>0&&showN<totalTrials)?showN:Math.max(10,totalTrials);
+  const visibleTrials=(showN>0&&showN<totalTrials)?showN:totalTrials;
   const startTrial=Math.max(0,totalTrials-visibleTrials);
   const N=visibleTrials;
 
-  const trialW=N>40?38:N>30?44:N>20?52:62;
+  const trialW=N>40?32:N>30?38:N>20?44:N>10?50:62;
   document.documentElement.style.setProperty('--trial-col-w',trialW+'px');
   const head=$('#tt-ra-head');
   const TIPS={AVG:'Average score',  'Trim AVG':'Drops lowest if below 80%', 'CV%':'stdev/avg × 100', Ceil:'90th percentile',
@@ -2525,6 +2528,7 @@ function ttRender(){
   };
   let h=makeTh('Uma','chara_name');
   for(let i=0;i<N;i++) h+=`<th class="trial-col" title="Score in trial ${startTrial+i+1}">T${startTrial+i+1}</th>`;
+  h+=makeTh('SV','sv','stat-col');
   h+=makeTh('AVG','avg_score','stat-col');
   h+=makeTh('Trim AVG','trimmed_avg','stat-col');
   h+=makeTh('CV%','cv','stat-col');
@@ -2536,7 +2540,7 @@ function ttRender(){
   head.innerHTML=h;
 
   if(!r.umas.length){
-    $('#tt-ra-body').innerHTML=`<tr><td colspan="${N+8}" class="tt-empty">
+    $('#tt-ra-body').innerHTML=`<tr><td colspan="${N+9}" class="tt-empty">
       <div style="font-size:14px;color:var(--mut);margin-bottom:8px">No Team Trials processed yet</div>
       <div>Click <b>Start capture</b>, play a trial, then stop.</div>
     </td></tr>`;
@@ -2563,9 +2567,13 @@ function ttRender(){
     (u.trials||[]).forEach(t=>{byIdx[t.trial_idx]=t;});
     let row=`<tr onclick="ttShowDetail(${u.trained_chara_id})">`;
     const initial=(u.chara_name||'?').trim().charAt(0).toUpperCase();
+    const sv=u.sv||0;
     row+=`<td><div class="tt-uma-cell">
-      <div class="tt-uma-icon-wrap"><span>${initial}</span><img class="tt-uma-icon" src="${ttIconUrl(u.chara_id)}" onerror="this.style.display='none'"/></div>
-      <div><div class="tt-uma-name">${u.chara_name}</div><div class="tt-uma-id">id ${u.trained_chara_id}</div></div>
+      <div class="tt-uma-badge">
+        <div class="tt-uma-icon-wrap"><span>${initial}</span><img class="tt-uma-icon" src="${ttIconUrl(u.chara_id)}" onerror="this.style.display='none'"/></div>
+        <span class="tt-sv-badge" title="Skill Value: ${sv}">${sv}</span>
+      </div>
+      <div><div class="tt-uma-name">${u.chara_name}</div><div class="tt-uma-id">SV ${sv}</div></div>
     </div></td>`;
     for(let i=0;i<N;i++){
       const t=byIdx[startTrial+i];
@@ -2575,6 +2583,7 @@ function ttRender(){
       } else row+=`<td class="num trial-col muted">-</td>`;
     }
     const [v,vc]=ttVerdictFor(u,topAvg);
+    row+=`<td class="num" style="color:#fbbf24;font-weight:700">${sv}</td>`;
     row+=`<td class="num">${u.avg_score.toLocaleString()}</td>`;
     row+=`<td class="num">${u.trimmed_avg.toLocaleString()}</td>`;
     row+=`<td class="num ${ttCvColor(u.cv)}">${u.cv}</td>`;
@@ -2607,7 +2616,7 @@ function ttShowDetail(tcid){
       <img class="tt-uma-icon" src="${ttIconUrl(uma.chara_id)}" style="width:68px;height:68px;border-radius:50%;border:2px solid var(--line)" onerror="this.style.display='none'"/>
       <div>
         <div style="font-size:18px;font-weight:800">${uma.chara_name}</div>
-        <div class="tt-status-line">trained_chara_id ${uma.trained_chara_id} · ${uma.n_appearances} appearances · avg ${uma.avg_score.toLocaleString()}</div>
+        <div class="tt-status-line">trained_chara_id ${uma.trained_chara_id} · ${uma.n_appearances} appearances · avg ${uma.avg_score.toLocaleString()} · <span style="font-weight:800;color:#fbbf24">SV ${uma.sv||0}</span></div>
         <div class="tt-status-line" style="margin-top:2px">${total} skills — <span style="color:var(--ok)">${always.length} always</span> · <span style="color:#ffce4d">${often.length} often</span> · <span style="color:#ff6e7e">${rare.length} rare</span> · <span style="color:#ff3060">${never.length} never</span></div>
       </div>
       <div style="margin-left:auto;text-align:right">

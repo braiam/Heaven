@@ -278,6 +278,157 @@ def parent_spark_value(c, want_lower, skill_weights=None):
     return spark_richness(c)
 
 
+# ── Proc-based scoring (10/10 model) ────────────────────────────────────
+# Instead of  obj = w_aff × affinity + w_spark × star_count,
+# we compute  obj = Σ P(≥1 proc) for each desired spark.
+# Affinity is already INSIDE the proc chance — no separate weights needed.
+
+# Base proc rates (shared with server.py — duplicated here to avoid circular import)
+_INHERITANCE_BASE = {
+    "blue":     {1: 0.70, 2: 0.80, 3: 0.90},
+    "stat":     {1: 0.70, 2: 0.80, 3: 0.90},
+    "aptitude": {1: 0.01, 2: 0.03, 3: 0.05},
+    "unique":   {1: 0.05, 2: 0.10, 3: 0.15},
+    "skill":    {1: 0.03, 2: 0.06, 3: 0.09},
+    "scenario": {1: 0.03, 2: 0.06, 3: 0.09},
+    "race":     {1: 0.01, 2: 0.02, 3: 0.03},
+}
+_EVENTS_FULL_RUN = 2
+
+def _base_rate(cat: str, stars: int) -> float:
+    if cat not in _INHERITANCE_BASE:
+        return 0.0
+    s = max(1, min(3, stars))
+    return _INHERITANCE_BASE[cat].get(s, 0.0)
+
+
+def expected_proc_score(p1: dict, p2: dict, target_card: int,
+                        want_lower: set | None = None,
+                        skill_weights: dict | None = None) -> dict:
+    """Compute the expected proc score for a parent pair.
+
+    Returns {
+        "eproc":   float — sum of P(≥1) across wanted (or all non-blue) sparks,
+        "eblue":   float — sum of P(≥1) for blue stat sparks,
+        "detail":  [{name, cat, ge1_pct, stars_total}, ...],
+        "affinity_total": int,
+    }
+
+    This is the TRUE objective: affinity is already inside each proc chance.
+    No artificial w_affinity / w_spark needed.
+    """
+    import affinity as _aff
+
+    # ── Affinity ───────────────────────────────────────────────
+    comp = _aff.compatibility_from_parsed(target_card, p1, p2)
+    indiv = _aff.individual_affinities_from_parsed(target_card, p1, p2)
+
+    src_aff = {
+        "p1":     indiv.get("p1", 0),
+        "p1_gp1": indiv.get("p1_gp1", 0),
+        "p1_gp2": indiv.get("p1_gp2", 0),
+        "p2":     indiv.get("p2", 0),
+        "p2_gp1": indiv.get("p2_gp1", 0),
+        "p2_gp2": indiv.get("p2_gp2", 0),
+    }
+
+    # ── Collect all sparks from 6 sources ──────────────────────
+    sparks = {}  # name -> {cat, type, sources: {src_key: stars}}
+
+    def _add(sp, src_key):
+        s = sparks.setdefault(sp["name"], {
+            "name": sp["name"], "type": sp["type"],
+            "cat": sp.get("category", sp["type"]),
+            "sources": {}
+        })
+        s["sources"][src_key] = s["sources"].get(src_key, 0) + sp["stars"]
+
+    for sp in p1.get("own_sparks", []):
+        _add(sp, "p1")
+    for sp in p2.get("own_sparks", []):
+        _add(sp, "p2")
+    for g in p1.get("grandparents", []):
+        pid = g.get("position_id")
+        key = "p1_gp1" if pid == 10 else "p1_gp2" if pid == 20 else None
+        if key:
+            for sp in g.get("sparks", []):
+                _add(sp, key)
+    for g in p2.get("grandparents", []):
+        pid = g.get("position_id")
+        key = "p2_gp1" if pid == 10 else "p2_gp2" if pid == 20 else None
+        if key:
+            for sp in g.get("sparks", []):
+                _add(sp, key)
+
+    # ── Compute proc for each spark ────────────────────────────
+    n_events = _EVENTS_FULL_RUN
+    detail = []
+    eproc = 0.0
+    eblue = 0.0
+
+    for sp in sparks.values():
+        cat = sp["cat"]
+        rate_cat = "blue" if cat in ("stat", "blue") else cat
+        is_blue = rate_cat == "blue"
+
+        # Per-source proc rates
+        source_rates = []
+        for sk, stars in sp["sources"].items():
+            if stars <= 0:
+                continue
+            base = _base_rate(rate_cat, stars)
+            if base <= 0:
+                continue
+            aff = src_aff.get(sk, 0)
+            rate = min(1.0, base * (1 + aff / 100))
+            source_rates.append(rate)
+
+        if not source_rates:
+            continue
+
+        # Combined P(≥1 proc over n_events)
+        miss = 1.0
+        for r in source_rates:
+            miss *= (1 - r)
+        combined = 1 - miss
+        ge1 = 1 - (1 - combined) ** n_events
+
+        total_stars = sum(sp["sources"].values())
+        entry = {"name": sp["name"], "cat": rate_cat,
+                 "ge1_pct": round(ge1 * 100, 2), "stars_total": total_stars}
+        detail.append(entry)
+
+        # Accumulate score
+        if is_blue:
+            eblue += ge1
+        else:
+            # Apply skill_weights if provided
+            weight = 1.0
+            if skill_weights:
+                weight = skill_weights.get(sp["name"].lower(), 1.0)
+            if want_lower:
+                if sp["name"].lower() in want_lower:
+                    eproc += ge1 * weight
+            else:
+                eproc += ge1 * weight
+
+    # Count sparks for averaging
+    n_proc = sum(1 for d in detail if d["cat"] != "blue")
+    n_blue = sum(1 for d in detail if d["cat"] == "blue")
+
+    return {
+        "eproc": round(eproc, 4),          # sum of P(>=1) for wanted/all non-blue
+        "eblue": round(eblue, 4),          # sum of P(>=1) for blue stats
+        "eproc_n": n_proc,                 # how many non-blue sparks contributed
+        "eblue_n": n_blue,                 # how many blue sparks contributed
+        "eproc_avg": round(eproc / n_proc * 100, 1) if n_proc else 0,  # avg proc %
+        "eblue_avg": round(eblue / n_blue * 100, 1) if n_blue else 0,  # avg blue proc %
+        "detail": detail,
+        "affinity_total": comp["total"],
+        "affinity_detail": comp,
+    }
+
+
 def all_spark_names(ds):
     """Nombres unicos de spark por tipo (para autocompletado/desplegables en la UI).
     Scenario sparks (TS Climax, etc.) are bucketed under 'white' since they are
@@ -311,37 +462,76 @@ def chara_brief(c, want_lower):
 
 def optimize_breed(ds, target, want, w_affinity=2.0, w_spark=1.0,
                    own_pool=60, rent_pool=40, top=15, allowed_ids=None,
-                   skill_weights=None):
-    """Devuelve {own:[...], rental:[...]} con las mejores parejas. Reutilizable (CLI + web)."""
+                   skill_weights=None, use_eproc=True):
+    """Devuelve {own:[...], rental:[...]} con las mejores parejas.
+
+    When use_eproc=True (default), uses the expected-proc model:
+        obj = eproc (sum of P(>=1) for wanted sparks) + eblue × 0.5
+    Affinity is INSIDE the proc chances — no separate weights needed.
+
+    When use_eproc=False, falls back to legacy weighted model:
+        obj = w_affinity × total_affinity + w_spark × star_count
+    """
     want_lower = {w.strip().lower() for w in want if w.strip()}
     mine = ds["mine"]
     if allowed_ids is not None:
         allowed = set(allowed_ids)
         mine = [c for c in mine if c["trained_chara_id"] in allowed]
     rentable = ds["rentable"]
-    sv = {id(c): parent_spark_value(c, want_lower, skill_weights) for c in mine + rentable}
-
-    def evaluate(p1, p2):
-        comp = affinity.compatibility_from_parsed(target, p1, p2)
-        spark = sv[id(p1)] + sv[id(p2)]
-        obj = w_affinity * comp["total"] + w_spark * spark
-        b1, b2 = blue_strength(p1), blue_strength(p2)
-        blue = {k: round(b1[k] + b2[k], 1) for k in STAT_NAMES.values() if b1[k] + b2[k]}
-        return {
-            "obj": round(obj, 1), "affinity": comp["total"],
-            "shared_g1": 0,  # legacy field, kept for compat
-            "affinity_detail": comp, "spark": round(spark, 1), "blue": blue,
-            "p1": chara_brief(p1, want_lower), "p2": chara_brief(p2, want_lower),
-        }
 
     # los 2 padres NO pueden ser el mismo personaje (regla del juego)
     # y ningún padre puede ser el mismo personaje que el target
     chid = {id(c): master.chara_id_of(c["card_id"]) for c in mine + rentable}
     target_ch = master.chara_id_of(target)
-
-    # Excluir al target de la pool de padres
     mine = [c for c in mine if chid[id(c)] != target_ch]
     rentable = [c for c in rentable if chid[id(c)] != target_ch]
+
+    if use_eproc:
+        # ── Expected-proc model (10/10) ───────────────────────────
+        def evaluate(p1, p2):
+            ep = expected_proc_score(p1, p2, target, want_lower, skill_weights)
+            # Objective: average proc% across all sparks (weighted)
+            obj = ep["eproc"] + ep["eblue"] * 0.5
+            b1, b2 = blue_strength(p1), blue_strength(p2)
+            blue = {k: round(b1[k] + b2[k], 1) for k in STAT_NAMES.values() if b1[k] + b2[k]}
+            return {
+                "obj": round(obj * 100, 1),
+                "eproc": ep["eproc_avg"],          # avg proc % of non-blue sparks
+                "eproc_n": ep["eproc_n"],           # how many sparks
+                "eblue": ep["eblue_avg"],           # avg blue stat proc %
+                "eblue_n": ep["eblue_n"],
+                "affinity": ep["affinity_total"],
+                "shared_g1": 0,
+                "affinity_detail": ep["affinity_detail"],
+                "spark": ep["eproc_avg"],
+                "blue": blue,
+                "p1": chara_brief(p1, want_lower),
+                "p2": chara_brief(p2, want_lower),
+            }
+
+        # Pre-filter pool by individual spark relevance
+        def _prescore(c):
+            """Quick pre-score for pool ranking (without pair context)."""
+            s = parent_spark_value(c, want_lower, skill_weights)
+            return s + spark_richness(c) * 0.3
+        sv = {id(c): _prescore(c) for c in mine + rentable}
+
+    else:
+        # ── Legacy weighted model ─────────────────────────────────
+        sv = {id(c): parent_spark_value(c, want_lower, skill_weights) for c in mine + rentable}
+
+        def evaluate(p1, p2):
+            comp = affinity.compatibility_from_parsed(target, p1, p2)
+            spark = sv[id(p1)] + sv[id(p2)]
+            obj = w_affinity * comp["total"] + w_spark * spark
+            b1, b2 = blue_strength(p1), blue_strength(p2)
+            blue = {k: round(b1[k] + b2[k], 1) for k in STAT_NAMES.values() if b1[k] + b2[k]}
+            return {
+                "obj": round(obj, 1), "affinity": comp["total"],
+                "shared_g1": 0,
+                "affinity_detail": comp, "spark": round(spark, 1), "blue": blue,
+                "p1": chara_brief(p1, want_lower), "p2": chara_brief(p2, want_lower),
+            }
 
     own = []
     pool = sorted(mine, key=lambda c: sv[id(c)], reverse=True)[:own_pool]
@@ -361,7 +551,8 @@ def optimize_breed(ds, target, want, w_affinity=2.0, w_spark=1.0,
                 rental.append(evaluate(a, r))
         rental.sort(key=lambda x: x["obj"], reverse=True)
 
-    return {"own": own[:top], "rental": rental[:top]}
+    return {"own": own[:top], "rental": rental[:top],
+            "model": "eproc" if use_eproc else "legacy"}
 
 
 # ---------- comandos ----------
