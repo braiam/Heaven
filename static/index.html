@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Heaven - Breeding & Team Trials</title>
 <style>
-  :root{--bg:#08090c;--panel:#11131a;--panel2:#181a22;--line:#232630;--txt:#e4e6eb;--mut:#7d8290;
+  :root{--bg:#0a0b0e;--panel:#13151a;--panel2:#1a1c22;--line:#252830;--txt:#e4e6eb;--mut:#7d8290;
         --blue:#5aadff;--pink:#ff7ac0;--green:#8bd450;--white:#d9c27a;--ok:#43c98a;--accent:#5a9fd4;
-        --gold:#e8b84a;
         --glow:rgba(90,159,212,0.12);--card-shadow:0 2px 8px rgba(0,0,0,0.3),0 1px 3px rgba(0,0,0,0.2)}
   *{box-sizing:border-box;margin:0}
   body{font:13.5px/1.45 'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt)}
@@ -15,8 +14,7 @@
   ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:var(--bg)}
   ::-webkit-scrollbar-thumb{background:#2a2d35;border-radius:4px} ::-webkit-scrollbar-thumb:hover{background:#383c46}
   /* header */
-  header{padding:0 20px;background:linear-gradient(180deg,var(--panel),rgba(17,19,26,0.95));border-bottom:1px solid var(--line);display:flex;align-items:stretch;gap:0;height:48px;
-    box-shadow:0 1px 12px rgba(0,0,0,0.3)}
+  header{padding:0 20px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:stretch;gap:0;height:48px}
   header h1{font-size:17px;margin:0;display:flex;align-items:center;padding-right:16px;letter-spacing:-0.02em;
             background:linear-gradient(135deg,var(--accent),#8b7adf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800}
   .src{color:var(--mut);font-size:11px;display:flex;align-items:center;padding-right:12px;border-right:1px solid var(--line);margin-right:4px}
@@ -52,84 +50,35 @@
   .stat{color:var(--ok)}
   /* selection */
   ::selection{background:rgba(90,159,212,0.3);color:var(--txt)}
-  /* ---- analytical dashboard: inventory table ---- */
-  .inv-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-  .inv-table thead th{position:sticky;top:0;z-index:4;background:var(--panel);color:var(--mut);font-size:9.5px;font-weight:700;
-    text-transform:uppercase;letter-spacing:.08em;padding:10px 10px 8px;border-bottom:2px solid var(--line);white-space:nowrap;text-align:left;user-select:none}
-  .inv-table thead th.col-num{text-align:right}
-  .inv-table thead th.col-bar{text-align:left}
-  .inv-table td.col-bar{vertical-align:middle;padding:4px 6px}
-  .ucard{display:table-row;transition:background .15s,box-shadow .15s;cursor:pointer}
-  .ucard>td{padding:8px 10px;border-bottom:1px solid rgba(37,40,48,0.6);vertical-align:middle;transition:background .15s}
-  .ucard:hover>td{background:rgba(90,159,212,0.04)}
-  .ucard.ucard-expanded>td{background:rgba(90,159,212,0.06);border-bottom-color:transparent}
-  .ucard-detail-row>td{padding:0;border-bottom:1px solid var(--line);background:rgba(10,11,14,0.6)}
-  .ucard-detail-inner{padding:16px 20px;animation:inv-expand .2s ease}
-  @keyframes inv-expand{from{opacity:0;max-height:0}to{opacity:1;max-height:800px}}
-  /* Row cells */
-  .uc-portrait{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--line);background:#080a0e;
-    box-shadow:0 1px 4px rgba(0,0,0,0.3);transition:border-color .2s;flex-shrink:0}
-  .ucard:hover .uc-portrait{border-color:var(--accent)}
-  .uc-name-cell{display:flex;align-items:center;gap:10px;min-width:0}
-  .uname{font-size:14px;font-weight:700;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .uc-owner{font-size:10px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
-  .uc-num{font-variant-numeric:tabular-nums;font-weight:800;text-align:right;white-space:nowrap}
-  .uc-num-label{font-size:8.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;display:none}
+  /* ---- uma.moe-style result cards ---- */
+  .ucard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;
+         box-shadow:var(--card-shadow);transition:border-color .2s,box-shadow .2s}
+  .ucard:hover{border-color:#333640;box-shadow:0 4px 16px rgba(0,0,0,0.35),0 1px 4px rgba(0,0,0,0.25)}
+  .uhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+         border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px}
+  .uname{font-size:15px;font-weight:800;letter-spacing:-0.01em}
+  .ustats{display:flex;align-items:center;gap:14px}
+  .us{display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,0.02)}
+  .us b{font-size:16px;font-weight:800} .us i{font-style:normal;font-size:9px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
   .c-aff{color:#ff5d8f} .c-g1{color:#5fd07a} .c-wh{color:#e0a94a} .c-sc{color:#5aa8ff} .c-target{color:#a98bff}
-  /* Factor distribution bar */
-  /* Inline factor chips */
-  .fc-inline{display:flex;gap:2px;flex-wrap:wrap;line-height:1}
-  .fc-inline:first-child{margin-bottom:2px}
-  .fc-chip{font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;white-space:nowrap;letter-spacing:.02em;font-variant-numeric:tabular-nums}
-  .fc-blue{background:rgba(90,173,255,0.12);color:var(--blue)}
-  .fc-pink{background:rgba(255,122,192,0.12);color:var(--pink)}
-  .fc-green{background:rgba(139,212,80,0.12);color:var(--green)}
-  .fc-chip.fc-hi{font-weight:800;border:1px solid rgba(255,255,255,0.1)}
-  .fc-chip.fc-mid{opacity:0.85}
-  .fc-chip.fc-lo{opacity:0.5}
-  .factor-bar-tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
-    background:#1a1c22;border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:10px;white-space:nowrap;z-index:10;
-    box-shadow:0 4px 16px rgba(0,0,0,0.5);pointer-events:none}
-  .factor-bar-wrap:hover .factor-bar-tip{display:block}
-  /* Grade badge */
-  .grade-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;border-radius:5px;
-    font-weight:800;font-size:11px;letter-spacing:.02em;min-width:32px;text-align:center}
-  .grade-ura,.grade-ss{background:linear-gradient(135deg,#3a2050,#4a2860);color:#e8b0ff;border:1px solid #6a3a8a}
-  .grade-s{background:linear-gradient(135deg,#2a2030,#322438);color:#ffcf6e;border:1px solid #4a3a2a}
-  .grade-a{background:linear-gradient(135deg,#1a2e28,#1c3430);color:#5fd0a8;border:1px solid #2a4a40}
-  .grade-b{background:#1e2230;color:var(--accent);border:1px solid #2a3a5a}
-  .grade-c,.grade-d,.grade-e,.grade-f{background:var(--panel2);color:var(--mut);border:1px solid var(--line)}
-  /* Expanded detail panel */
-  .ucard-detail-actions{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
-  .ucard-detail-actions button{font-size:10.5px;padding:5px 12px;border-radius:6px;white-space:nowrap}
-  .ucard-detail-inputs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-  .ucard-detail-inputs .note-in{flex:2;min-width:160px;font-size:12px;padding:6px 10px}
-  .ucard-detail-inputs .tag-in{flex:1;min-width:120px;font-size:12px;padding:6px 10px}
-  .ucard-detail-factors{margin-top:10px}
-  /* Friend row accent */
-  .ucard.ucard-friend>td:first-child{box-shadow:inset 3px 0 0 rgba(95,208,168,0.4)}
-  /* legacy compat */
-  .ufoot{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .ufoot{display:flex;gap:6px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);flex-wrap:wrap}
   .ufoot .note-in{flex:2;min-width:160px} .ufoot .tag-in{flex:1;min-width:120px} .ufoot .note-in,.ufoot .tag-in{width:auto}
   .ufoot button{font-size:11px;padding:5px 11px;border-radius:6px}
-  .ustats{display:none}
-  .us{display:none} .us b{display:none} .us i{display:none}
-  .uhead{display:none}
   /* ---- spark chips (estilo propio) ---- */
   /* pildoras estilo uma.moe: rect redondeada, borde de tipo, "N*" con estrella en color */
   /* pildoras estilo uma.moe: relleno oscuro tintado por tipo, texto del color del tipo */
-  .pl{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:5px;margin:1.5px;
-      font-size:11px;background:#1c1e24;border:1px solid #2a2d35;white-space:nowrap;transition:transform .1s,box-shadow .15s}
+  .pl{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:7px;margin:2px;
+      font-size:12px;background:#22242a;border:1px solid #30333b;white-space:nowrap;transition:transform .1s,box-shadow .15s}
   .pl:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,0.3)}
-  .pl .st{font-weight:700;font-size:10.5px}
-  .pl .val{color:#aeb6c2;font-size:9.5px}
-  .pl .you{color:#e0a94a;font-size:9.5px}
+  .pl .st{font-weight:700;font-size:11.5px}
+  .pl .val{color:#aeb6c2;font-size:10.5px}
+  .pl .you{color:#e0a94a;font-size:10.5px}     /* aportacion propia, dorado */
   .pl-blue {background:#132540;border-color:#264a72} .pl-blue .st,.pl-blue .nm {color:#7fb0e6}
   .pl-pink {background:#351a26;border-color:#5e2d42} .pl-pink .st,.pl-pink .nm {color:#df8aa6}
   .pl-green{background:#182c16;border-color:#34522c} .pl-green .st,.pl-green .nm{color:#8cc068}
   .pl-white{background:#24262b;border-color:#36393f} .pl-white .st,.pl-white .nm{color:#c2c0c8}
   /* race list panel under each uma card */
-  .races-panel{margin-top:8px;padding:10px 14px;border-top:1px solid var(--line);background:rgba(8,9,12,0.6);border-radius:8px;font-size:11.5px;
+  .races-panel{margin-top:8px;padding:10px 14px;border-top:1px solid var(--line);background:#11131a;border-radius:0 0 10px 10px;font-size:11.5px;
                animation:panel-slide .2s ease}
   @keyframes panel-slide{from{opacity:0;max-height:0}to{opacity:1;max-height:600px}}
   .races-panel .rsec{margin-bottom:5px}
@@ -150,22 +99,22 @@
   .pl.pl-breed .nm{color:#f0d060;font-weight:600}
   .pl.pl-breed:hover{box-shadow:0 0 0 2px rgba(218,165,32,0.7), 0 0 14px rgba(218,165,32,0.3)}
   /* grupos por tipo con barra de color a la izquierda (como uma.moe) */
-  .fg{display:flex;flex-wrap:wrap;gap:0;padding:3px 0 3px 10px;border-left:2px solid #2c3543;margin:3px 0}
+  .fg{display:flex;flex-wrap:wrap;gap:0;padding:4px 0 4px 12px;border-left:3px solid #2c3543;margin:4px 0}
   .fg-blue{border-left-color:#4a78a8} .fg-pink{border-left-color:#b1648c}
   .fg-green{border-left-color:#6c9c4d} .fg-white{border-left-color:#34373e}
-  /* portrait tree (compact in table, full in detail) */
-  .ptcol{display:flex;flex-direction:column;align-items:center;gap:0;min-width:140px}
-  .rport{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--line);background:#080a0e;
-         box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:border-color .2s,transform .15s}
-  .rport:hover{border-color:var(--accent);transform:scale(1.06)}
-  .rport.sm{width:40px;height:40px}
-  .ph2{color:var(--pink);font-weight:700;font-size:11px}
-  .pconn{color:#2a2e38;font-size:14px;line-height:1;padding:1px 0;position:relative}
+  /* arbol de retratos circulares */
+  .ptcol{display:flex;flex-direction:column;align-items:center;gap:0;min-width:150px}
+  .rport{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--line);background:#080a0e;
+         box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:border-color .2s,transform .2s}
+  .rport:hover{border-color:var(--accent);transform:scale(1.05)}
+  .rport.sm{width:48px;height:48px}
+  .ph2{color:var(--pink);font-weight:700;font-size:12px}
+  .pconn{color:#2a2e38;font-size:16px;line-height:1;padding:2px 0;position:relative}
   .pconn::before{content:'';position:absolute;left:50%;top:0;width:1px;height:100%;background:linear-gradient(to bottom,var(--line),transparent)}
-  .prow{display:flex;gap:12px;justify-content:center;position:relative}
+  .prow{display:flex;gap:16px;justify-content:center;position:relative}
   .prow::before{content:'';position:absolute;top:-2px;left:25%;right:25%;height:1px;background:var(--line)}
   .pcell{display:flex;flex-direction:column;align-items:center;gap:2px}
-  .pcell .nm{font-size:10px;color:var(--mut);max-width:72px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pcell .nm{font-size:10.5px;color:var(--mut);max-width:78px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* character picker modal */
   .chara-picker-bg{position:fixed;inset:0;background:rgba(4,5,8,.88);display:flex;align-items:center;justify-content:center;z-index:1500;backdrop-filter:blur(6px);animation:overlay-in .2s ease}
   .chara-picker-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:640px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 64px rgba(0,0,0,.7);animation:modal-in .25s ease}
@@ -231,7 +180,7 @@
   /* ---- badges ---- */
   .port{width:46px;height:46px;border-radius:8px;object-fit:cover;border:1px solid var(--line);background:#080a0e;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
   .port.sm{width:30px;height:30px;border-radius:6px} .port.lg{width:74px;height:74px;border-radius:12px}
-  .rankb{display:inline-block;padding:2px 7px;border-radius:5px;background:linear-gradient(135deg,#1e1828,#2a2030);color:#e0b848;border:1px solid #3a2e22;font-weight:700;font-size:11px}
+  .rankb{display:inline-block;padding:2px 7px;border-radius:5px;background:linear-gradient(135deg,#2a2030,#322438);color:#ffcf6e;border:1px solid #4a3a2a;font-weight:700;font-size:12px}
   .whiteb{display:inline-block;padding:2px 7px;border-radius:5px;background:#2e2a1c;color:var(--white);border:1px solid #4a432a;font-weight:700;font-size:12px}
   .friendb{background:linear-gradient(135deg,#1a2e28,#1c3430);color:#5fd0a8;border:1px solid #2a4a40;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px}
   .matchb{display:inline-block;padding:1px 7px;border-radius:5px;background:#1e2c46;color:#7fb2ff;font-size:10px;font-weight:600}
@@ -239,18 +188,12 @@
   .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:var(--panel2);border:1px solid var(--line);font-size:12px;margin:2px;transition:border-color .15s,background .15s}
   .chip:hover{border-color:#3a3d46;background:#22252e}
   .chip .x{cursor:pointer;color:var(--mut);transition:color .15s} .chip .x:hover{color:#e06b6b}
-  /* breed combo result cards — dense analytical rows */
-  .combo{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px;
-    background:linear-gradient(135deg,rgba(19,21,26,0.95),rgba(26,28,34,0.95));
-    box-shadow:0 1px 3px rgba(0,0,0,0.2);transition:border-color .2s,background .2s,transform .15s}
-  .cpair{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;flex-wrap:nowrap;min-width:0}
-  .cpair .cx{color:#2a2e38;font-weight:400;font-size:16px;flex-shrink:0}
-  .cpair .port{flex-shrink:0}
-  .cpair .combo-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .cmeta{margin-top:4px;font-size:12px;display:flex;align-items:center;gap:10px} .cmeta .c-aff{font-size:14px}
-  .combo-score{font-size:22px;font-weight:900;line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
-  .combo-score-label{font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
-  .combo.clickable{cursor:pointer} .combo.clickable:hover{border-color:var(--accent);background:rgba(90,159,212,0.06);transform:translateX(2px)}
+  .combo{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px;background:var(--panel2);
+         box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:border-color .2s,background .2s,transform .15s}
+  .cpair{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;flex-wrap:wrap}
+  .cpair .cx{color:var(--mut);font-weight:400}
+  .cmeta{margin-top:5px;font-size:12px} .cmeta .c-aff{font-size:14px}
+  .combo.clickable{cursor:pointer} .combo.clickable:hover{border-color:var(--accent);background:#1e2230;transform:translateX(3px)}
   #tray{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--panel);border-top:1px solid var(--line);
         padding:8px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,.5);
         backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
@@ -287,22 +230,19 @@
   .frow .x{cursor:pointer;color:#c05050;font-weight:700;padding:0 4px;font-size:14px;transition:color .15s} .frow .x:hover{color:#e06b6b}
   .addf{font-size:11px;padding:4px 11px;border-radius:6px}
   .stars-b{color:var(--blue)} .stars-p{color:var(--pink)} .stars-g{color:var(--green)} .stars-w{color:var(--white)}
-  /* ---- detail modal (glassmorphism-lite) ---- */
-  .overlay{position:fixed;inset:0;background:rgba(4,5,8,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  /* ---- detail modal ---- */
+  .overlay{position:fixed;inset:0;background:rgba(4,5,8,.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
            display:flex;align-items:center;justify-content:center;z-index:50;animation:overlay-in .2s ease}
   .overlay.hide{display:none}
   @keyframes overlay-in{from{opacity:0}to{opacity:1}}
-  .modal{background:linear-gradient(180deg,#12141a 0%,#0e1016 100%);border:1px solid rgba(40,42,51,0.8);border-radius:14px;padding:24px;
-    max-width:1000px;width:94%;max-height:92vh;overflow:auto;
-    box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,0.03) inset,0 0 60px rgba(90,159,212,0.03);animation:modal-in .25s ease}
+  .modal{background:#12141a;border:1px solid #282a33;border-radius:12px;padding:20px;max-width:1000px;width:94%;max-height:92vh;
+         overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,0.03) inset;animation:modal-in .25s ease}
   @keyframes modal-in{from{transform:scale(0.96) translateY(10px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
   .tree{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .ptree{display:flex;gap:10px}
   .pnode{text-align:center} .pnode .heart{color:var(--pink);font-weight:700;font-size:12px}
-  .seclab{font-size:11px;color:var(--mut);margin:18px 0 6px;text-transform:uppercase;letter-spacing:.06em;
-    padding-bottom:4px;border-bottom:1px solid rgba(37,40,48,0.6);font-weight:600}
-  .pcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px;transition:border-color .2s}
-  .pcard:hover{border-color:#3a3d46}
+  .seclab{font-size:12px;color:var(--mut);margin:14px 0 4px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line);padding-bottom:3px}
+  .pcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
   .pcard .ph{display:flex;align-items:center;gap:10px;margin-bottom:6px}
   .gprow{display:flex;gap:8px;margin-top:8px;padding-left:14px;border-left:2px solid var(--line);flex-wrap:wrap}
   .gpcard{flex:1;min-width:260px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
@@ -311,19 +251,18 @@
   .dedit{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
   .dedit textarea{width:300px;min-height:46px} .dedit input{width:220px}
   /* ---- minimalist detail ---- */
-  .drow{display:flex;align-items:center;gap:14px}
-  .dname{font-size:20px;font-weight:900;letter-spacing:-0.03em} .dmeta{color:var(--mut);font-size:11.5px;margin-top:3px}
-  .dedit2{display:flex;gap:8px;align-items:center;margin:12px 0;flex-wrap:wrap;padding:10px 14px;
-    background:var(--panel2);border:1px solid var(--line);border-radius:8px}
-  .dedit2 input{flex:1;min-width:140px;font-size:12px} .dedit2 #dNote{flex:2}
-  .dmain{display:flex;gap:20px;align-items:flex-start;margin-top:14px}
+  .drow{display:flex;align-items:center;gap:12px}
+  .dname{font-size:18px;font-weight:800;letter-spacing:-0.02em} .dmeta{color:var(--mut);font-size:11.5px;margin-top:2px}
+  .dedit2{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}
+  .dedit2 input{flex:1;min-width:140px} .dedit2 #dNote{flex:2}
+  .dmain{display:flex;gap:18px;align-items:flex-start;margin-top:10px}
   .fgrid{flex:1;min-width:0}
   .dtree{display:flex;align-items:center;gap:10px;margin:6px 0 14px;flex-wrap:wrap}
   .tn{display:flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:5px 9px}
   .tn .nm{font-size:12px} .ar{color:var(--mut);font-size:12px}
   .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)}
   .glab{width:74px;flex:none;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
-  .sk em{font-style:normal;color:var(--mut);font-size:10px;margin-left:2px}
+  .sk em{font-style:normal;color:var(--mut);font-size:10px;margin-left:2px} /* you N */
   .sk .pc{color:var(--mut);font-size:10px}
   small{color:var(--mut)}
   /* ---- affinity tab ---- */
@@ -391,15 +330,17 @@
   .breed-adv summary:hover{color:var(--txt)}
   .breed-adv-inner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px;padding:8px 12px;
                    background:var(--panel2);border-radius:6px;border:1px solid var(--line)}
+  .breed-results{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
   .breed-col{min-width:0}
+  .breed-col-header{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;
+                    padding:6px 12px;margin-bottom:6px;border-bottom:2px solid var(--accent);background:linear-gradient(to right,rgba(90,159,212,0.08),transparent)}
   @media(max-width:900px){.breed-row{flex-direction:column;align-items:stretch} .breed-results{grid-template-columns:1fr}}
-  /* breed combo cards override */
+  /* breed combo cards (results) */
   .combo{position:relative;overflow:hidden}
-  .combo::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-    background:linear-gradient(180deg,var(--accent),rgba(90,159,212,0.3));opacity:0;transition:opacity .2s}
+  .combo::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:0;transition:opacity .2s}
   .combo.clickable:hover::before{opacity:1}
   .combo .cpair .port{border-radius:50%;border:2px solid var(--line)}
-  .combo .cmeta{display:flex;align-items:center;gap:10px}
+  .combo .cmeta{display:flex;align-items:center;gap:8px}
   /* ---- spark proc odds (compact) ---- */
   .odds-toggle{display:flex;gap:4px}
   .odds-btn{font-size:11px !important;padding:4px 11px !important;border-radius:6px !important}
@@ -680,6 +621,7 @@
   @media(max-width:900px){.tt-ra2-uma{min-width:140px} .tt-ra2-stats{gap:4px} .tt-ra2-stat{min-width:42px;padding:3px 4px} .tt-ra2-stat b{font-size:11px}}
 
   /* ---- Inventory improvements ---- */
+  /* Source toggle pills (All / Yours / Friends) */
   .inv-src-pills{display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
   .inv-src-pill{padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;background:var(--panel2);color:var(--mut);
                 border:none;border-right:1px solid var(--line);transition:all .15s;font-family:inherit;border-radius:0}
@@ -689,6 +631,7 @@
   .inv-src-pill .pill-count{font-size:10px;font-weight:700;background:var(--bg);padding:1px 6px;border-radius:10px;margin-left:5px;font-variant-numeric:tabular-nums}
   .inv-src-pill.active .pill-count{background:rgba(90,159,212,0.2);color:var(--accent)}
 
+  /* Collapsible factors panel */
   .inv-factors-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:2px 0}
   .inv-factors-toggle:hover .inv-factors-arrow{color:var(--accent)}
   .inv-factors-arrow{font-size:10px;color:var(--mut);transition:transform .2s,color .2s;margin-right:8px}
@@ -697,24 +640,24 @@
   .inv-factors-body.open{max-height:600px;opacity:1}
   .inv-factors-count{font-size:10px;color:var(--ok);font-weight:700;margin-left:8px}
 
+  /* Friend card distinction */
+  .ucard.ucard-friend{border-left:3px solid rgba(95,208,168,0.4)}
+  .ucard.ucard-friend .uhead{padding-bottom:10px}
+
   /* White skills collapse */
   .fg-white-truncated .pl-overflow{display:none}
-  .fg-white-more{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;margin:2px;
-                 font-size:10px;background:#1e2028;border:1px solid var(--line);color:var(--mut);cursor:pointer;
+  .fg-white-more{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:7px;margin:2px;
+                 font-size:11px;background:#1e2028;border:1px solid var(--line);color:var(--mut);cursor:pointer;
                  transition:all .15s;font-weight:600}
   .fg-white-more:hover{color:var(--accent);border-color:var(--accent);background:#1a2030}
 
+  /* Show more button */
   .inv-show-more{display:flex;justify-content:center;padding:16px 0}
   .inv-show-more button{padding:10px 32px;font-size:13px;letter-spacing:.03em}
 
+  /* Better footer layout */
   .ufoot-actions{display:flex;gap:4px;align-items:center;margin-left:auto;flex-shrink:0}
   .ufoot-actions button{font-size:10.5px;padding:4px 10px;border-radius:6px;white-space:nowrap}
-
-  /* ---- Breed results grid refinement ---- */
-  .breed-results{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
-  .breed-col-header{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;
-    padding:8px 14px;margin-bottom:6px;border-bottom:2px solid rgba(90,159,212,0.3);
-    background:linear-gradient(to right,rgba(90,159,212,0.06),transparent);border-radius:4px 4px 0 0}
 </style>
 </head>
 <body>
@@ -837,16 +780,16 @@
 
 <!-- ===== INVENTORY ===== -->
 <section id="inv">
-  <div class="card" style="padding:12px 16px">
-    <div class="row" style="gap:8px;align-items:center">
-      <input id="filter" placeholder="Filter by name, note, tag or owner..." style="flex:1;min-width:200px;font-size:12.5px">
-      <label class="muted" style="white-space:nowrap;font-size:11px;display:flex;align-items:center;gap:4px">min. white <input id="minWhite" type="number" min="0" value="0" style="width:50px;padding:4px 6px;font-size:11px"></label>
+  <div class="card">
+    <div class="row" style="gap:8px">
+      <input id="filter" placeholder="Filter by name, note, tag or owner..." style="flex:1;min-width:200px">
+      <label class="muted" style="white-space:nowrap;font-size:12px">min. white <input id="minWhite" type="number" min="0" value="0" style="width:56px;padding:5px 8px;font-size:12px"></label>
       <div class="inv-src-pills">
         <button id="srcAll" type="button" class="inv-src-pill active">All</button>
         <button id="srcMine" type="button" class="inv-src-pill">Yours</button>
         <button id="srcFriend" type="button" class="inv-src-pill">Friends</button>
       </div>
-      <select id="sortBy" class="ghost" title="sort" style="font-size:11px;padding:5px 8px">
+      <select id="sortBy" class="ghost" title="sort" style="font-size:12px;padding:6px 8px">
         <option value="affinity">Affinity</option>
         <option value="build">Build Fit</option>
         <option value="g1">G1 Wins</option>
@@ -854,7 +797,7 @@
         <option value="score">Score</option>
         <option value="newest">Newest First</option>
       </select>
-      <span class="muted" id="invCount" style="font-size:10px;white-space:nowrap;font-variant-numeric:tabular-nums"></span>
+      <span class="muted" id="invCount" style="font-size:11px;white-space:nowrap"></span>
     </div>
     <div class="row" style="gap:8px;align-items:center;margin-top:6px">
       <label class="muted" style="font-weight:700;color:var(--accent);white-space:nowrap;font-size:10px;text-transform:uppercase;letter-spacing:.06em">BUILD</label>
@@ -867,25 +810,27 @@
         <option>Sprint</option><option>Mile</option><option>Medium</option><option>Long</option><option>Dirt</option>
       </select>
       <span class="muted" id="invBuildMsg" style="font-size:10px"></span>
-      <span style="color:var(--line);margin:0 4px">│</span>
-      <label class="muted" style="font-weight:700;white-space:nowrap;font-size:10px;text-transform:uppercase;letter-spacing:.06em">TARGET</label>
-      <div class="target-pick-btn" id="invTargetBtn" style="min-width:120px;max-width:200px">
+    </div>
+    <div class="target-pick-row">
+      <label class="muted" style="font-weight:600;color:var(--accent);white-space:nowrap">TARGET:</label>
+      <div class="target-pick-btn" id="invTargetBtn">
         <img class="tp-portrait hide" id="invTargetPortrait" src="" alt="">
-        <span class="tp-name" id="invTargetName" style="font-size:11px">pick target...</span>
+        <span class="tp-name" id="invTargetName">Pick a target uma to score parent affinity...</span>
         <span class="tp-arrow">▾</span>
       </div>
-      <button id="invTargetClear" type="button" class="ghost hide" style="font-size:10px;padding:4px 10px">Clear</button>
-      <span class="muted" id="invTargetMsg" style="font-size:11px"></span>
+      <button id="invTargetClear" type="button" class="ghost hide">Clear</button>
+      <span class="muted" id="invTargetMsg" style="font-size:12px"></span>
     </div>
   </div>
-  <div class="card" style="padding:10px 16px">
+  <div class="card">
     <div class="inv-factors-toggle" id="factorsToggle">
       <div style="display:flex;align-items:center">
         <span class="inv-factors-arrow">▶</span>
-        <b style="color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:.06em">Inheritance Factors</b>
+        <b style="color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.05em">Inheritance Factors</b>
+        <span class="muted" style="font-size:10px;margin-left:6px">(uma.moe style)</span>
         <span class="inv-factors-count hide" id="factorsActiveCount"></span>
       </div>
-      <button class="ghost" id="clearF" style="font-size:10px;padding:3px 8px" onclick="event.stopPropagation()">Clear factors</button>
+      <button class="ghost" id="clearF" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation()">Clear factors</button>
     </div>
     <div class="inv-factors-body" id="factorsBody">
       <div id="fcats"></div>
@@ -1263,34 +1208,8 @@ function matchUma(u){
   return {pref,lin:Math.round(lin*100)/100};
 }
 
-// ---- analytical dashboard: factor bar + full pill grid ----
+// ---- uma.moe-style result card ----
 const WHITE_TRUNCATE_LIMIT = 8;
-function factorBar(u){
-  // Blue stats as mini chips (e.g. "Wit6 Pow3 Spd1")
-  const agg=u.agg||[];
-  const blues=agg.filter(a=>a.type==='blue').sort((a,b)=>b.total-a.total);
-  const pinks=agg.filter(a=>a.type==='pink').sort((a,b)=>b.total-a.total);
-  const greens=agg.filter(a=>a.type==='green').sort((a,b)=>b.total-a.total);
-  // Abbreviate stat names
-  const STAT_SHORT={Speed:'Spd',Stamina:'Sta',Power:'Pow',Guts:'Gut',Wit:'Wit'};
-  const PINK_SHORT={'Late Surger':'Late','Front Runner':'Front','Pace Chaser':'Pace','End Closer':'Close',
-    Turf:'Turf',Dirt:'Dirt',Short:'Sprint',Mile:'Mile',Medium:'Mid',Long:'Long'};
-  const blueHtml=blues.map(a=>{
-    const nm=STAT_SHORT[a.name]||a.name.substring(0,3);
-    const cls=a.total>=6?'fc-hi':a.total>=3?'fc-mid':'fc-lo';
-    return `<span class="fc-chip fc-blue ${cls}" title="${a.name} ${a.total}★">${nm}${a.total}</span>`;
-  }).join('');
-  const pinkHtml=pinks.map(a=>{
-    const nm=PINK_SHORT[a.name]||a.name.substring(0,4);
-    const cls=a.total>=6?'fc-hi':a.total>=3?'fc-mid':'fc-lo';
-    return `<span class="fc-chip fc-pink ${cls}" title="${a.name} ${a.total}★">${nm}${a.total}</span>`;
-  }).join('');
-  const greenHtml=greens.slice(0,2).map(a=>{
-    const nm=a.name.substring(0,6);
-    return `<span class="fc-chip fc-green" title="${a.name} ${a.total}★">${nm}${a.total}</span>`;
-  }).join('');
-  return `<div class="fc-inline">${blueHtml}</div><div class="fc-inline">${pinkHtml}${greenHtml}</div>`;
-}
 function factorGrid(u){
   const agg=u.agg||[];
   return TYPE_ORDER.map(t=>{
@@ -1319,20 +1238,21 @@ function toggleWhiteSkills(uid){
 function portraitTree(u){
   const ph=u.parents||[];
   const tBd = TARGET_CARD ? TARGET_BREAKDOWN[tkey(u)] : null;
+  // When target is set: show exact affinity (CR + WSB)
   const mainHeart = tBd ? tBd.total : ph.reduce((s,p)=>s+(p.stars||0),0);
   const heartColor = tBd ? 'var(--accent)' : 'var(--pink)';
   const wsbTag = tBd && tBd.wsb > 0
-    ? `<div style="font-size:9px;color:var(--ok)">+${tBd.wsb} race</div>` : '';
+    ? `<div style="font-size:10px;color:var(--ok)">+${tBd.wsb} race</div>` : '';
   const nodeHeart = (p)=>{
-    if(!tBd) return `<span class="ph2">${p.stars}</span>`;
+    if(!tBd) return `<span class="ph2">♥ ${p.stars}</span>`;
     const n = (tBd.nodes||[]).find(n=>n.card_id===p.card_id);
     const val = n ? n.total : 0;
-    return `<span class="ph2" style="color:var(--accent)">${val}</span>`;
+    return `<span class="ph2" style="color:var(--accent)">♥ ${val}</span>`;
   };
   return `<div class="ptcol">
     <div class="pcell"><img class="rport" src="/img/${u.card_id}" onerror="this.style.visibility='hidden'">
-      <div class="ph2" style="color:${heartColor}">${mainHeart}</div>${wsbTag}</div>
-    <div class="pconn">|</div>
+      <div class="ph2" style="color:${heartColor}">♥ ${mainHeart}</div>${wsbTag}</div>
+    <div class="pconn">▼</div>
     <div class="prow">${ph.map(p=>`<div class="pcell">
       <img class="rport sm" src="/img/${p.card_id}" onerror="this.style.visibility='hidden'">
       <div class="nm">${esc(p.name)}</div>
@@ -1340,129 +1260,57 @@ function portraitTree(u){
   </div>`;
 }
 function affinityOf(u){ return (u.parents||[]).reduce((s,p)=>s+(p.stars||0),0); }
-function _gradeClass(label){
-  const l=(label||'').toUpperCase();
-  if(l.includes('URA')) return 'grade-ura';
-  if(l.startsWith('SS')) return 'grade-ss';
-  if(l.startsWith('S')) return 'grade-s';
-  if(l.startsWith('A')) return 'grade-a';
-  if(l.startsWith('B')) return 'grade-b';
-  return 'grade-c';
-}
 function umaCard(u){
   const isFriend = u.src==='friend';
-  const ownerTxt = isFriend ? esc(u.owner_name||'friend') : `${(u.fans||0).toLocaleString()} fans`;
-  const ownerBadge = isFriend ? `<span class="friendb" style="font-size:9px;padding:1px 5px">F</span> ` : '';
-  const mb=(u._pref||u._lin)?`<span class="matchb" style="font-size:9px;padding:0 5px">${u._pref?'p'+u._pref:''}${u._pref&&u._lin?'/':''}${u._lin?'l'+u._lin:''}</span>`:'';
+  const owner=isFriend?`<span class="friendb">friend</span> <small>${esc(u.owner_name||'')}</small>`:`<small>${(u.fans||0).toLocaleString()} fans</small>`;
+  const mb=(u._pref||u._lin)?`<span class="matchb">${u._pref?'pref '+u._pref:''}${u._pref&&u._lin?' · ':''}${u._lin?'lin '+u._lin:''}</span>`:'';
   const tScore = TARGET_AFFINITY[tkey(u)];
   const tBd = TARGET_BREAKDOWN[tkey(u)];
   const targeted = TARGET_CARD && tScore!=null;
   const affVal = targeted ? tScore : affinityOf(u);
+  const affLabel = targeted ? 'AFFINITY' : 'LINEAGE';
   const affTip = targeted && tBd
-    ? `CR: ${tBd.cr} (base ${tBd.cr_base} + GP bonus ${tBd.cr_gp}) | WSB: +${tBd.wsb} | Total: ${tBd.total}`
+    ? `CR: ${tBd.cr} (base ${tBd.cr_base} + GP bonus ${tBd.cr_gp})` +
+      ` | WSB: +${tBd.wsb}` +
+      ` | Total: ${tBd.total}`
     : 'Sum of parent spark stars (lineage potential). Pick a target to see exact affinity.';
   const friendCls = isFriend ? ' ucard-friend' : '';
-  const rl = u.rank_label||('R'+(u.rank??'?'));
-  return `<tr class="ucard${friendCls}" data-id="${u.trained_chara_id}">
-    <td><div class="uc-name-cell">
-      <img class="uc-portrait" src="/img/${u.card_id}" onerror="this.style.visibility='hidden'" alt="">
-      <div style="min-width:0"><div class="uname">${ownerBadge}${esc(u.name)} ${mb}</div><div class="uc-owner">${ownerTxt}</div></div>
-    </div></td>
-    <td class="col-bar">${factorBar(u)}</td>
-    <td class="uc-num" title="${esc(affTip)}"><span class="c-aff" style="font-size:15px">${affVal}</span>${u._buildFit?`<div style="font-size:8px;color:var(--ok);font-weight:700">${u._buildFit}</div>`:''}</td>
-    <td class="uc-num"><span class="c-g1">${u.g1||0}</span></td>
-    <td class="uc-num"><span class="c-wh">${u.white_count||0}</span></td>
-    <td class="uc-num"><span class="c-sc">${(u.rank_score||0).toLocaleString()}</span></td>
-    <td><span class="grade-badge ${_gradeClass(rl)}">${rl}</span></td>
-  </tr>
-  <tr class="ucard-detail-row hide" data-detail-for="${u.trained_chara_id}"><td colspan="7">
-    <div class="ucard-detail-inner">
-      <div style="display:flex;gap:16px;align-items:flex-start">
-        ${portraitTree(u)}
-        <div class="ucard-detail-factors fgrid" style="flex:1;min-width:0">${factorGrid(u)}</div>
+  return `<div class="ucard${friendCls}" data-id="${u.trained_chara_id}">
+    <div class="uhead">
+      <div><span class="uname">${esc(u.name)}</span> ${owner} ${mb}</div>
+      <div class="ustats">
+        ${u._buildFit?`<span class="us" title="Build fit score (stats + aptitude + skills for selected style/distance)"><b style="color:var(--ok)">${u._buildFit}</b><i>BUILD FIT</i></span>`:''}
+        <span class="us" title="${esc(affTip)}"><b class="c-aff">${affVal}</b><i>${affLabel}</i></span>
+        <span class="us"><b class="c-g1">${u.g1||0}</b><i>G1 WINS</i></span>
+        <span class="us"><b class="c-wh">${u.white_count||0}</b><i>WHITE</i></span>
+        <span class="us"><b class="c-sc">${(u.rank_score||0).toLocaleString()}</b><i>SCORE</i></span>
+        <span class="rankb" title="Trained grade (R${u.rank??'?'}). Score: ${(u.rank_score||0).toLocaleString()}">${u.rank_label||('R'+(u.rank??'?'))}</span>
       </div>
-      <div class="ucard-detail-inputs">
-        <input class="note-in" placeholder="note..." value="${esc(u.note||'')}">
-        <input class="tag-in" placeholder="tags: keep, speed..." value="${esc((u.tags||[]).join(', '))}">
-      </div>
-      <div class="ucard-detail-actions">
-        <button class="ghost bp bp1" data-id="${u.trained_chara_id}" title="Use as Parent 1 in Breed">P1</button>
-        <button class="ghost bp bp2" data-id="${u.trained_chara_id}" title="Use as Parent 2 in Breed">P2</button>
+    </div>
+    <div class="dmain">${portraitTree(u)}<div class="fgrid">${factorGrid(u)}</div></div>
+    <div class="ufoot">
+      <input class="note-in" placeholder="note for this uma..." value="${esc(u.note||'')}">
+      <input class="tag-in" placeholder="tags: keep, speed, sell..." value="${esc((u.tags||[]).join(', '))}">
+      <div class="ufoot-actions">
+        <button class="ghost bp bp1" data-id="${u.trained_chara_id}" title="Use as Parent 1 in Breed">Parent 1</button>
+        <button class="ghost bp bp2" data-id="${u.trained_chara_id}" title="Use as Parent 2 in Breed">Parent 2</button>
         <button class="ghost bviewraces" data-id="${u.trained_chara_id}">Races</button>
         <button class="ghost bfilter" data-name="${esc(u.name)}" title="Show all copies of this uma">All copies</button>
       </div>
-      <div class="races-panel hide" data-id="${u.trained_chara_id}"></div>
     </div>
-  </td></tr>`;
+    <div class="races-panel hide" data-id="${u.trained_chara_id}"></div>
+  </div>`;
 }
 function saveCardField(e){
-  // inputs are in the detail row; find the id from the detail-for attribute or the parent ucard row
-  const detailRow=e.target.closest('.ucard-detail-row')||e.target.closest('.ucard');
-  const id=detailRow ? +(detailRow.dataset.detailFor||detailRow.dataset.id) : 0;
-  if(!id) return;
-  const container=detailRow.querySelector('.ucard-detail-inner')||detailRow;
-  const note=(container.querySelector('.note-in')||{}).value?.trim()||'';
-  const tags=(container.querySelector('.tag-in')||{}).value?.split(',').map(s=>s.trim()).filter(Boolean)||[];
+  const card=e.target.closest('.ucard'); const id=+card.dataset.id;
+  const note=card.querySelector('.note-in').value.trim();
+  const tags=card.querySelector('.tag-in').value.split(',').map(s=>s.trim()).filter(Boolean);
   fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({trained_chara_id:id,note,tags})});
   const u=allUmas().find(x=>x.trained_chara_id===id); if(u){u.note=note;u.tags=tags;}
   refreshTagSelects();
 }
 const LIST_LIMIT=25;
-
-// ---- Build fit scoring ----
-// Maps running style to the pink aptitude factor name
-const BUILD_STYLE_FACTOR = {'Front Runner':'Front Runner','Pace Chaser':'Pace Chaser','Late Surger':'Late Surger','End Closer':'End Closer'};
-// Maps distance to the pink aptitude factor name
-const BUILD_DIST_FACTOR = {Sprint:'Short',Mile:'Mile',Medium:'Medium',Long:'Long',Dirt:'Dirt'};
-// Maps style to preferred blue stats (weighted)
-const BUILD_STAT_PREF = {
-  'Front Runner':{Speed:3,Power:2,Wit:1},
-  'Pace Chaser':{Speed:3,Power:2,Wit:2},
-  'Late Surger':{Power:3,Guts:2,Wit:1},
-  'End Closer':{Power:2,Guts:3,Wit:1},
-};
-// Keywords to match white skills for a style+distance combo
-const BUILD_SKILL_KW = {
-  'Front Runner':['front runner','escape','nige'],
-  'Pace Chaser':['pace chaser','pacer','senkou'],
-  'Late Surger':['late surger','sashi'],
-  'End Closer':['end closer','closer','oikomi'],
-  Sprint:['sprint','short'],Mile:['mile'],Medium:['medium','middle'],Long:['long','stayer'],Dirt:['dirt'],
-};
-function buildFitScore(u){
-  const style=$('#invStyle').value, dist=$('#invDistance').value;
-  if(!style&&!dist) return 0;
-  const agg=u.agg||[];
-  let score=0;
-  // Pink aptitude: style factor stars × 4
-  if(style){
-    const sf=agg.find(a=>a.type==='pink'&&a.name===BUILD_STYLE_FACTOR[style]);
-    score+=(sf?sf.total:0)*4;
-  }
-  // Pink aptitude: distance factor stars × 4
-  if(dist){
-    const df=agg.find(a=>a.type==='pink'&&a.name===BUILD_DIST_FACTOR[dist]);
-    score+=(df?df.total:0)*4;
-  }
-  // Blue stats: weighted by preference for this style
-  const prefs=style?BUILD_STAT_PREF[style]:{};
-  agg.filter(a=>a.type==='blue').forEach(a=>{
-    const w=prefs[a.name]||0.5;
-    score+=(a.total||0)*w;
-  });
-  // White skills matching style+distance keywords
-  const kws=[...(style?BUILD_SKILL_KW[style]:[]),...(dist?BUILD_SKILL_KW[dist]:[])];
-  if(kws.length){
-    const whites=agg.filter(a=>_displayType(a.type)==='white');
-    whites.forEach(a=>{
-      const nl=a.name.toLowerCase();
-      if(kws.some(k=>nl.includes(k))) score+=(a.total||0)*2;
-    });
-  }
-  return Math.round(score*10)/10;
-}
-
 let SRC_FILTER=''; // '' = all, 'mine' = yours only, 'friend' = friends only
 let TARGET_AFFINITY={}, TARGET_BREAKDOWN={}, TARGET_CARD=null, TARGET_EXCLUDED=new Set();
 let _targetCardId=null, _targetCardIdForPortrait=null, _targetWins=[];
@@ -1581,6 +1429,56 @@ function updateFactorsCount(){
   if(total>0){ el.textContent=total+' active'; el.classList.remove('hide'); }
   else el.classList.add('hide');
 }
+// ---- Build fit scoring ----
+const BUILD_STYLE_FACTOR = {'Front Runner':'Front Runner','Pace Chaser':'Pace Chaser','Late Surger':'Late Surger','End Closer':'End Closer'};
+const BUILD_DIST_FACTOR = {Sprint:'Short',Mile:'Mile',Medium:'Medium',Long:'Long',Dirt:'Dirt'};
+const BUILD_STAT_PREF = {
+  'Front Runner':{Speed:3,Power:2,Wit:1},
+  'Pace Chaser':{Speed:3,Power:2,Wit:2},
+  'Late Surger':{Power:3,Guts:2,Wit:1},
+  'End Closer':{Power:2,Guts:3,Wit:1},
+};
+const BUILD_SKILL_KW = {
+  'Front Runner':['front runner','escape','nige'],
+  'Pace Chaser':['pace chaser','pacer','senkou'],
+  'Late Surger':['late surger','sashi'],
+  'End Closer':['end closer','closer','oikomi'],
+  Sprint:['sprint','short'],Mile:['mile'],Medium:['medium','middle'],Long:['long','stayer'],Dirt:['dirt'],
+};
+function buildFitScore(u){
+  const style=$('#invStyle').value, dist=$('#invDistance').value;
+  if(!style&&!dist) return 0;
+  const agg=u.agg||[];
+  let score=0;
+  if(style){
+    const sf=agg.find(a=>a.type==='pink'&&a.name===BUILD_STYLE_FACTOR[style]);
+    score+=(sf?sf.total:0)*4;
+  }
+  if(dist){
+    const df=agg.find(a=>a.type==='pink'&&a.name===BUILD_DIST_FACTOR[dist]);
+    score+=(df?df.total:0)*4;
+  }
+  const prefs=style?BUILD_STAT_PREF[style]:{};
+  agg.filter(a=>a.type==='blue').forEach(a=>{
+    const w=prefs[a.name]||0.5;
+    score+=(a.total||0)*w;
+  });
+  const kws=[...(style?BUILD_SKILL_KW[style]:[]),...(dist?BUILD_SKILL_KW[dist]:[])];
+  if(kws.length){
+    const whites=agg.filter(a=>_displayType(a.type)==='white');
+    whites.forEach(a=>{
+      const nl=a.name.toLowerCase();
+      if(kws.some(k=>nl.includes(k))) score+=(a.total||0)*2;
+    });
+  }
+  return Math.round(score*10)/10;
+}
+function _updateBuildMsg(){
+  const s=$('#invStyle').value, d=$('#invDistance').value;
+  const el=$('#invBuildMsg');
+  if(s||d){ el.textContent=`sorted by: ${[s,d].filter(Boolean).join(' + ')} fit`; el.style.color='var(--ok)'; }
+  else { el.textContent=''; }
+}
 function renderInv(){
   _rebuildHighlight();
   const f=$('#filter').value.toLowerCase().trim();
@@ -1646,19 +1544,9 @@ function renderInv(){
   const shown=rows.slice(0, _invShown);
   const suffix = rows.length > _invShown ? ` — showing ${_invShown}` : '';
   $('#invCount').textContent=`${rows.length} umas (${nMine} yours, ${nFr} friends)${suffix}`;
-  const affLabel = TARGET_CARD ? 'AFF' : 'LIN';
-  const tableHead = `<table class="inv-table"><thead><tr>
-    <th style="min-width:180px">Uma</th>
-    <th class="col-bar" style="width:220px">Stats / Aptitude</th>
-    <th class="col-num" style="width:60px">${affLabel}</th>
-    <th class="col-num" style="width:44px">G1</th>
-    <th class="col-num" style="width:52px">WHT</th>
-    <th class="col-num" style="width:68px">Score</th>
-    <th style="width:50px">Grade</th>
-  </tr></thead><tbody>`;
   const showMoreHtml = rows.length > _invShown
-    ? `</tbody></table><div class="inv-show-more"><button class="ghost" id="invShowMore">Show ${Math.min(LIST_LIMIT, rows.length - _invShown)} more of ${rows.length - _invShown} remaining</button></div>` : '</tbody></table>';
-  $('#invList').innerHTML=tableHead + shown.map(umaCard).join('') + showMoreHtml;
+    ? `<div class="inv-show-more"><button class="ghost" id="invShowMore">Show ${Math.min(LIST_LIMIT, rows.length - _invShown)} more of ${rows.length - _invShown} remaining</button></div>` : '';
+  $('#invList').innerHTML=shown.map(umaCard).join('') + showMoreHtml;
   _bindInvList();
   updateFactorsCount();
 }
@@ -1669,40 +1557,19 @@ function _showMoreInv(){
   _invShown = next;
   const moreBtn = document.getElementById('invShowMore');
   if(moreBtn) moreBtn.closest('.inv-show-more').remove();
-  // Insert new rows into the existing tbody
-  const tbody = document.querySelector('#invList tbody');
-  const temp = document.createElement('tbody');
-  temp.innerHTML = batch.map(umaCard).join('');
-  while(temp.firstChild) tbody.appendChild(temp.firstChild);
+  const frag = document.createElement('div');
+  frag.innerHTML = batch.map(umaCard).join('');
   const remaining = _invRows.length - _invShown;
   if(remaining > 0){
-    const smDiv = document.createElement('div');
-    smDiv.className = 'inv-show-more';
-    smDiv.innerHTML = `<button class="ghost" id="invShowMore">Show ${Math.min(LIST_LIMIT, remaining)} more of ${remaining} remaining</button>`;
-    // Insert after the table
-    const tbl = document.querySelector('#invList table');
-    if(tbl) tbl.after(smDiv);
+    frag.innerHTML += `<div class="inv-show-more"><button class="ghost" id="invShowMore">Show ${Math.min(LIST_LIMIT, remaining)} more of ${remaining} remaining</button></div>`;
   }
-  // re-bind new elements
-  tbody.querySelectorAll('.note-in,.tag-in').forEach(el=>{if(!el._bound){el._bound=1;el.addEventListener('blur',saveCardField);}});
-  tbody.querySelectorAll('.bfilter').forEach(b=>b.onclick=()=>{$('#filter').value=b.dataset.name;renderInv();});
-  tbody.querySelectorAll('.bp1').forEach(b=>b.onclick=()=>setParent(1,allUmas().find(x=>x.trained_chara_id===+b.dataset.id)));
-  tbody.querySelectorAll('.bp2').forEach(b=>b.onclick=()=>setParent(2,allUmas().find(x=>x.trained_chara_id===+b.dataset.id)));
-  tbody.querySelectorAll('.bviewraces').forEach(b=>b.onclick=()=>toggleRaces(+b.dataset.id, b));
-  // Re-bind row expand
-  tbody.querySelectorAll('.ucard').forEach(row=>{
-    if(row._expandBound) return; row._expandBound=1;
-    row.onclick=(e)=>{
-      if(e.target.closest('input,button,a,.bp,.bfilter,.bviewraces,.note-in,.tag-in')) return;
-      const id=row.dataset.id;
-      const detailRow=document.querySelector(`tr[data-detail-for="${id}"]`);
-      if(!detailRow) return;
-      const wasOpen=!detailRow.classList.contains('hide');
-      $$('#invList .ucard-detail-row').forEach(d=>d.classList.add('hide'));
-      $$('#invList .ucard').forEach(r=>r.classList.remove('ucard-expanded'));
-      if(!wasOpen){ detailRow.classList.remove('hide'); row.classList.add('ucard-expanded'); }
-    };
-  });
+  $('#invList').appendChild(frag);
+  // re-bind only new elements
+  frag.querySelectorAll('.note-in,.tag-in').forEach(el=>el.addEventListener('blur',saveCardField));
+  frag.querySelectorAll('.bfilter').forEach(b=>b.onclick=()=>{$('#filter').value=b.dataset.name;renderInv();});
+  frag.querySelectorAll('.bp1').forEach(b=>b.onclick=()=>setParent(1,allUmas().find(x=>x.trained_chara_id===+b.dataset.id)));
+  frag.querySelectorAll('.bp2').forEach(b=>b.onclick=()=>setParent(2,allUmas().find(x=>x.trained_chara_id===+b.dataset.id)));
+  frag.querySelectorAll('.bviewraces').forEach(b=>b.onclick=()=>toggleRaces(+b.dataset.id, b));
   const sm2=document.getElementById('invShowMore');
   if(sm2) sm2.onclick=_showMoreInv;
   const nMine=_invRows.filter(u=>u.src!=='friend').length, nFr=_invRows.length-nMine;
@@ -1715,23 +1582,6 @@ function _bindInvList(){
   $$('#invList .bp1').forEach(b=>b.onclick=()=>setParent(1,allUmas().find(x=>x.trained_chara_id===+b.dataset.id)));
   $$('#invList .bp2').forEach(b=>b.onclick=()=>setParent(2,allUmas().find(x=>x.trained_chara_id===+b.dataset.id)));
   $$('#invList .bviewraces').forEach(b=>b.onclick=()=>toggleRaces(+b.dataset.id, b));
-  // Row click to expand/collapse inline detail
-  $$('#invList .ucard').forEach(row=>{
-    row.onclick=(e)=>{
-      if(e.target.closest('input,button,a,.bp,.bfilter,.bviewraces,.note-in,.tag-in')) return;
-      const id=row.dataset.id;
-      const detailRow=document.querySelector(`tr[data-detail-for="${id}"]`);
-      if(!detailRow) return;
-      const wasOpen=!detailRow.classList.contains('hide');
-      // Close all open details
-      $$('#invList .ucard-detail-row').forEach(d=>d.classList.add('hide'));
-      $$('#invList .ucard').forEach(r=>r.classList.remove('ucard-expanded'));
-      if(!wasOpen){
-        detailRow.classList.remove('hide');
-        row.classList.add('ucard-expanded');
-      }
-    };
-  });
   const sm=document.getElementById('invShowMore');
   if(sm) sm.onclick=_showMoreInv;
 }
@@ -1742,7 +1592,7 @@ async function toggleRaces(id, btn){
   if(!panel) return;
   if(!panel.classList.contains('hide')){
     panel.classList.add('hide');
-    btn.textContent = 'Races';
+    btn.textContent = 'View races';
     return;
   }
   if(!_RACES_CACHE[id]){
@@ -1829,43 +1679,42 @@ function openDetail(u){
   const umaHeart=ph.reduce((s,p)=>s+(p.stars||0),0);
   const ptree=`<div class="ptcol">
     <div class="pcell"><img class="rport" src="/img/${u.card_id}" onerror="this.style.visibility='hidden'">
-      <div class="ph2">${umaHeart}</div></div>
-    <div class="pconn">|</div>
+      <div class="ph2">♥ ${umaHeart}</div></div>
+    <div class="pconn">▼</div>
     <div class="prow">${ph.map(p=>`<div class="pcell">
       <img class="rport sm" src="/img/${p.card_id}" onerror="this.style.visibility='hidden'">
-      <div class="nm">${esc(p.name)}</div><div class="ph2">${p.stars}</div></div>`).join('')}</div>
+      <div class="nm">${esc(p.name)}</div><div class="ph2">♥ ${p.stars}</div></div>`).join('')}</div>
   </div>`;
   const pdet=ph.map((p,i)=>`<div class="pcard"><div class="ph">
       <img class="port sm" src="/img/${p.card_id}" onerror="this.style.visibility='hidden'">
       <b>Parent ${i+1}: ${esc(p.name)}</b></div><div>${chipsList(p.sparks)}</div></div>`).join('');
   const owner=u.src==='friend'?`<span class="friendb">friend</span> by ${esc(u.owner_name||'?')}`:`${(u.fans||0).toLocaleString()} fans`;
-  const rl = u.rank_label||('R'+(u.rank??'?'));
   $('#detailBody').innerHTML=`
     <div class="drow">
       <div style="flex:1">
         <div class="dname">${esc(u.name)}</div>
-        <div class="dmeta"><span class="grade-badge ${_gradeClass(rl)}" style="font-size:10px;padding:1px 6px">${rl}</span> <span style="font-variant-numeric:tabular-nums">${(u.rank_score||0).toLocaleString()}</span> <span style="margin:0 4px;opacity:0.3">|</span> ${u.white_count||0} white <span style="margin:0 4px;opacity:0.3">|</span> ${owner}</div>
+        <div class="dmeta"><span class="rankb" title="Trained grade (R${u.rank??'?'}). Score: ${(u.rank_score||0).toLocaleString()}">${u.rank_label||('R'+(u.rank??'?'))}</span> ${(u.rank_score||0).toLocaleString()} · ${u.white_count||0} white · ${owner}</div>
       </div>
-      <button class="ghost" id="dFilter" style="font-size:11px">Show all</button>
-      <button class="ghost" id="dClose" style="font-size:11px">Close</button>
+      <button class="ghost" id="dFilter">Show all</button>
+      <button class="ghost" id="dClose">Close ✕</button>
     </div>
     <div class="dedit2">
       <input id="dNote" placeholder="note for this uma..." value="${esc(u.note||'')}">
       <input id="dTags" placeholder="tags: keep, speed, sell..." value="${esc((u.tags||[]).join(', '))}">
-      <button id="dSave" style="font-size:11px;padding:6px 16px">Save</button><span id="dSaved" class="muted" style="font-size:10px"></span>
+      <button id="dSave">Save</button><span id="dSaved" class="muted"></span>
     </div>
     <div class="dmain">
       ${ptree}
       <div class="fgrid">${groups}</div>
     </div>
-    <button class="ghost" id="dTogglePar" style="margin-top:14px;font-size:11px">Show each parent's sparks</button>
+    <button class="ghost" id="dTogglePar" style="margin-top:12px;font-size:12px">Show each parent's sparks ▾</button>
     <div id="dPar" class="hide" style="margin-top:8px">${pdet}</div>
-    <p class="muted" style="margin:12px 0 0;font-size:10px">Total stars = trainee + 2 parents. (N) = trainee's own. % = approx inspiration proc (estimate).</p>`;
+    <p class="muted" style="margin:10px 0 0;font-size:11px">Total ★ = trainee + 2 parents. (N★) = trainee's own. % = approx inspiration proc (estimate).</p>`;
   $('#dClose').onclick=()=>$('#detail').classList.add('hide');
   $('#dFilter').onclick=()=>filterByUma(u);
   $('#dSave').onclick=()=>saveDetail(u);
   $('#dTogglePar').onclick=()=>{const e=$('#dPar');e.classList.toggle('hide');
-    $('#dTogglePar').textContent=e.classList.contains('hide')?"Show each parent's sparks":"Hide parent sparks";};
+    $('#dTogglePar').textContent=e.classList.contains('hide')?"Show each parent's sparks ▾":"Hide parent sparks ▴";};
   $('#detail').classList.remove('hide');
 }
 function saveDetail(u){
@@ -2095,30 +1944,24 @@ async function runBreed(){
   bindResultClicks('ownRes'); bindResultClicks('rentRes');
 }
 function combo(c, idx){
-  const own=c.p2.owner_name?` <span class="friendb" style="font-size:9px">${esc(c.p2.owner_name)}</span>`:'';
-  const rank = idx != null ? `<span style="color:var(--mut);font-size:9px;font-weight:800;min-width:18px">#${idx+1}</span>` : '';
-  const scoreVal = c.eproc!=null ? c.eproc+'%' : c.obj;
-  const scoreLabel = c.eproc!=null ? 'proc' + (c.eproc_n?' ('+c.eproc_n+')':'') : 'score';
+  const blue=Object.entries(c.blue||{}).map(([k,v])=>`<span class="stat">${k} ${v}</span>`).join('  ');
+  const own=c.p2.owner_name?` <span class="friendb">${esc(c.p2.owner_name)}</span>`:'';
+  const rank = idx != null ? `<span style="color:var(--mut);font-size:10px;font-weight:700;margin-right:4px">#${idx+1}</span>` : '';
   return `<div class="combo clickable" data-p1="${c.p1.trained_chara_id}" data-p2="${c.p2.trained_chara_id}">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
-        <div class="combo-score" style="color:var(--ok)">${scoreVal}</div>
-        <div class="combo-score-label">${scoreLabel}</div>
-      </div>
-      <div style="flex:1;min-width:0">
-        <div class="cpair">
-          ${rank}<img class="port" src="/img/${c.p1.card_id}" onerror="this.style.visibility='hidden'" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--accent)">
-          <span class="combo-name">${esc(c.p1.name)}</span>
-          <span class="cx">x</span>
-          <img class="port" src="/img/${c.p2.card_id}" onerror="this.style.visibility='hidden'" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--pink)">
-          <span class="combo-name">${esc(c.p2.name)}</span>${own}
-        </div>
-        <div class="cmeta">
-          <span style="font-size:11px">aff <b class="c-aff">${c.affinity}</b></span>
-          ${c.eblue!=null?`<span style="font-size:11px">blue <b style="color:var(--blue)">${c.eblue}%</b></span>`:''}
-        </div>
-      </div>
+    <div class="cpair">
+      ${rank}<img class="port sm" src="/img/${c.p1.card_id}" onerror="this.style.visibility='hidden'" style="border-radius:50%;border:2px solid var(--line)">
+      <span>${esc(c.p1.name)} <span class="rankb" style="font-size:9px;padding:1px 4px">${c.p1.rank_label||'R'+(c.p1.rank||'?')}</span></span>
+      <span class="cx" style="font-size:14px;color:#3a4050">×</span>
+      <img class="port sm" src="/img/${c.p2.card_id}" onerror="this.style.visibility='hidden'" style="border-radius:50%;border:2px solid var(--line)">
+      <span>${esc(c.p2.name)} <span class="rankb" style="font-size:9px;padding:1px 4px">${c.p2.rank_label||'R'+(c.p2.rank||'?')}</span></span>${own}
     </div>
+    <div class="cmeta">
+      <b style="font-size:14px;color:var(--ok)">${c.eproc!=null?c.eproc+'%':c.obj}</b>
+      <span class="muted" style="font-size:10px">${c.eproc!=null?'avg proc'+(c.eproc_n?' ('+c.eproc_n+')':''):'score'}</span>
+      <span class="muted" style="font-size:11px;margin-left:8px">affinity <b style="color:var(--accent)">${c.affinity}</b></span>
+      ${c.eblue!=null?`<span class="muted" style="font-size:11px;margin-left:6px">blue <b style="color:var(--blue)">${c.eblue}%</b></span>`:''}
+    </div>
+    ${blue?`<div style="font-size:11px;margin-top:3px;color:var(--mut)">stats: ${blue}</div>`:''}
   </div>`;
 }
 
@@ -2280,28 +2123,28 @@ function openPairDetail(d){
   const hasOdds = d.spark_odds && (d.spark_odds.full_run || d.spark_odds.first_only);
   const oddsPanel = hasOdds ? `
     <div class="seclab" style="display:flex;justify-content:space-between;align-items:center">
-      <span>Spark Proc Odds</span>
+      <span>Expected Spark Proc Odds</span>
       <div class="odds-toggle">
         <button class="odds-btn active" data-mode="full_run">Full run (2 events)</button>
-        <button class="odds-btn ghost" data-mode="first_only">First only</button>
+        <button class="odds-btn ghost" data-mode="first_only">First inheritance only</button>
       </div>
     </div>
     <div class="odds-grid" id="oddsGrid">${sparkOddsGrid(d.spark_odds, 'full_run')}</div>
-    <p class="muted" style="font-size:9px;margin-top:6px">
-      P(>=1 proc) per spark. Stars: <span style="color:var(--accent)">P1</span> / <span style="color:var(--pink)">P2</span>. Click any spark to see source breakdown.
+    <p class="muted" style="font-size:9px;margin-top:4px">
+      P(&ge;1 proc) per spark. <b>Full run</b> = 2 events. Stars: <span style="color:var(--accent)">P1</span> / <span style="color:var(--pink)">P2</span>. Click any spark to see which tree entity contributes what.
     </p>` : '';
 
   const treeHtml = lineageTree(d);
   $('#detailBody').innerHTML=`
     <div class="drow"><div style="flex:1">
-      <div class="dname">${esc(d.p1.name)} <span style="color:var(--mut);font-weight:400;font-size:16px">x</span> ${esc(d.p2.name)}</div>
-      <div class="dmeta">breeding <b>${esc(d.target_name)}</b> <span style="margin:0 6px;opacity:0.3">|</span> <span class="c-aff" style="font-size:13px;font-weight:900">${c.total}</span> <span style="font-size:10px">affinity</span>${c.win_bonus?' <span style="margin:0 4px;opacity:0.3">|</span> <span class="c-g1">+'+c.win_bonus+' race</span>':''}</div>
-    </div><button class="ghost" id="dClose" style="font-size:11px">Close</button></div>
+      <div class="dname">${esc(d.p1.name)} × ${esc(d.p2.name)}</div>
+      <div class="dmeta">breeding <b>${esc(d.target_name)}</b> · <b class="c-aff">Affinity ${c.total}</b>${c.win_bonus?' · <span class="c-g1">+'+c.win_bonus+' race</span>':''}</div>
+    </div><button class="ghost" id="dClose">Close ✕</button></div>
     ${treeHtml}
     ${oddsPanel}
-    <details style="margin-top:12px"><summary class="seclab" style="cursor:pointer;user-select:none">Inherited factors + parent detail</summary>
+    <details style="margin-top:8px"><summary class="seclab" style="cursor:pointer;user-select:none">Inherited factors + parent detail</summary>
     ${pairGrid(d.agg)}
-    <div class="dmain" style="margin-top:10px;gap:10px">${parentCol(d.p1,'P1')}${parentCol(d.p2,'P2')}</div>
+    <div class="dmain" style="margin-top:8px;gap:8px">${parentCol(d.p1,'P1')}${parentCol(d.p2,'P2')}</div>
     </details>`;
   $('#dClose').onclick=()=>{_BREED_HI=new Set();_BREED_HI_KW=[];$('#detail').classList.add('hide');};
   // Odds toggle + expandable source details
@@ -2336,12 +2179,6 @@ $('#minWhite').addEventListener('input',renderInv);
 $('#sortBy').addEventListener('change',renderInv);
 $('#invStyle').addEventListener('change',()=>{ if($('#invStyle').value||$('#invDistance').value){$('#sortBy').value='build';} renderInv(); _updateBuildMsg(); });
 $('#invDistance').addEventListener('change',()=>{ if($('#invStyle').value||$('#invDistance').value){$('#sortBy').value='build';} renderInv(); _updateBuildMsg(); });
-function _updateBuildMsg(){
-  const s=$('#invStyle').value, d=$('#invDistance').value;
-  const el=$('#invBuildMsg');
-  if(s||d){ el.textContent=`sorted by: ${[s,d].filter(Boolean).join(' + ')} fit`; el.style.color='var(--ok)'; }
-  else { el.textContent=''; }
-}
 $('#fcats').addEventListener('click',e=>{
   const add=e.target.closest('.addf');
   if(add){const k=add.dataset.k;FILTERS[k].push({name:'',min:1,max:CATS.find(c=>c.k===k).max});renderFcats();renderInv();updateFactorsCount();return;}
