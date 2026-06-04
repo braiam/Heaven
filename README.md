@@ -49,10 +49,6 @@ Character portraits are bundled in the repo. Missing ones download from gametora
 
 Browse your full character factor inventory. Each card shows its factor stars, inherited skills, and scenario bonuses. Use the search bar to filter by name. Click any card to see the full factor breakdown.
 
-### Affinity Calculator
-
-Pick two parents and instantly see their affinity score with a detailed breakdown of every bonus: chara relation, win saddle bonus (WSB), and cross-compatibility. The formula matches the game's exact calculation (confirmed against 100+ real trials by BourBon_Polaris).
-
 ### Breed Optimizer
 
 Select a target build (running style + distance), pick your "want" skills, and the optimizer finds the best parent combinations from your inventory. Uses the **expected proc model**: instead of arbitrary weights, it computes the real probability of each spark proccing across all 6 tree entities (parents + 4 grandparents), each with their own individual affinity. Blue stat procs (70/80/90% base) are included in scoring too.

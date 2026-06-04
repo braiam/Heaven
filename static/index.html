@@ -589,7 +589,6 @@
   <span class="src" id="src">loading...</span>
   <div class="tabs">
     <div class="tab active" data-tab="inv">Inventory</div>
-    <div class="tab" data-tab="affinity">Affinity</div>
     <div class="tab" data-tab="breed">Breed</div>
     <div class="tab" data-tab="tt-overview">Team Trials</div>
     <div class="tab" data-tab="tt-planner">Skill Planner</div>
@@ -742,66 +741,6 @@
 </section>
 
 <!-- ===== AFFINITY (exact formula + WSB) ===== -->
-<section id="affinity" class="hide">
-  <div class="card">
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <div>
-        <b style="color:var(--accent);font-size:14px;letter-spacing:-0.01em">COMPATIBILITY <span style="font-weight:400;opacity:0.7">(相性)</span></b>
-        <small class="muted" style="margin-left:8px;font-size:11px">Exact in-game breeding affinity</small>
-      </div>
-      <div id="wsbStatus" style="font-size:11px"></div>
-    </div>
-    <div id="wsbCoverage" style="margin-top:4px;font-size:11px" class="muted"></div>
-  </div>
-
-  <!-- WSB info — collapsed by default -->
-  <div class="card" id="captureCard" style="padding:10px 16px;cursor:pointer" onclick="this.querySelector('.wsb-detail').classList.toggle('hide')">
-    <div class="row" style="align-items:center;gap:8px">
-      <span style="color:var(--ok);font-size:14px">&#10003;</span>
-      <span style="font-size:12.5px"><b>Race Bonus (WSB)</b> <span class="muted">— computed offline, exact match</span></span>
-      <span class="muted" style="margin-left:auto;font-size:10px">click to expand</span>
-    </div>
-    <div class="wsb-detail hide" style="margin-top:8px;color:var(--mut);font-size:12px;line-height:1.5;border-top:1px solid var(--line);padding-top:8px">
-      Race bonuses are calculated <b>offline</b> from your imported data:<br>
-      <code style="background:var(--panel2);padding:2px 8px;border-radius:4px;font-size:11px">
-        WSB(parent) = shared_races(parent, GP1) + shared_races(parent, GP2)
-      </code><br>
-      No game capture or DLL injection needed. Values match 1:1.
-    </div>
-  </div>
-
-  <!-- Target + ranking -->
-  <div class="card">
-    <div class="target-pick-row">
-      <label class="muted" style="font-weight:600;color:var(--accent);white-space:nowrap">TARGET:</label>
-      <div class="target-pick-btn" id="affTargetBtn">
-        <img class="tp-portrait hide" id="affTargetPortrait" src="" alt="">
-        <span class="tp-name" id="affTargetName">Pick a target trainee to rank parents...</span>
-        <span class="tp-arrow">▾</span>
-      </div>
-      <button id="affTargetClear" type="button" class="ghost hide">Clear</button>
-      <button id="affRefresh" type="button" class="ghost hide" title="Refresh race bonus data">Refresh</button>
-    </div>
-  </div>
-
-  <!-- Pair calculator -->
-  <div class="card">
-    <b style="color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.05em">Pair Calculator</b>
-    <small class="muted" style="margin-left:8px;font-size:11px">Select 2 parents from the ranking (click → P1 / → P2)</small>
-    <div class="row" style="margin-top:10px;gap:8px;align-items:center">
-      <span class="trayslot" id="affP1">P1: <i>—</i></span>
-      <span style="color:var(--mut);font-size:18px">×</span>
-      <span class="trayslot" id="affP2">P2: <i>—</i></span>
-      <button id="affCalcPair" type="button">Calculate pair</button>
-      <button id="affClearPair" type="button" class="ghost">Clear</button>
-    </div>
-    <div id="affPairResult" style="margin-top:12px"></div>
-  </div>
-
-  <!-- Ranking table -->
-  <div id="affRankList"></div>
-</section>
-
 <!-- ===== BREED ===== -->
 <section id="breed" class="hide">
   <!-- Target & weights -->
@@ -1550,11 +1489,8 @@ function filterByUma(u){
 }
 function showTab(name){
   $$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
-  const panels = ['inv','affinity','breed','tt-overview','tt-planner','tt-lookup','tt-stadium'];
+  const panels = ['inv','breed','tt-overview','tt-planner','tt-lookup','tt-stadium'];
   panels.forEach(p=>{ const el=$('#'+p); if(el) el.classList.toggle('hide',p!==name); });
-  if(name==='affinity'){
-    affRefreshStatus();
-  }
   if(name==='tt-overview' && !TT_LOADED){
     TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
   }
@@ -2331,199 +2267,8 @@ async function restoreUIState(s){
   if(s.scrollY) window.scrollTo(0, s.scrollY);
 }
 
-// ===== AFFINITY TAB =====
-const AFF = { target: null, targetName: '', results: [], p1: null, p2: null };
-
-async function affRefreshStatus(){
-  try{
-    const r = await fetch('/api/wsb/status');
-    const s = await r.json();
-
-    // WSB is always computed offline — show source info
-    $('#wsbStatus').innerHTML = `<span style="color:var(--ok)">●</span> Race bonus: computed offline (${s.method || 'win_saddle intersection'})`;
-    $('#wsbCoverage').innerHTML = '';
-  }catch(e){
-    $('#wsbStatus').innerHTML = '';
-    $('#wsbCoverage').innerHTML = '';
-  }
-}
-
-$('#affRefresh').onclick = async ()=>{
-  $('#affRefresh').textContent = 'Refreshing...'; $('#affRefresh').disabled = true;
-  await affRefreshStatus();
-  if(AFF.target) await affFetchRank();
-  $('#affRefresh').textContent = 'Refresh'; $('#affRefresh').disabled = false;
-};
-
-// Target picker (reuses the character picker modal)
+// Character picker callback (used by breed target + inventory target pickers)
 let _affPickerCb = null;
-
-function affOpenPicker(){
-  _affPickerCb = async (cid, name)=>{
-    AFF.target = cid; AFF.targetName = name;
-    const portrait = $('#affTargetPortrait');
-    portrait.src = `/img/${cid}`;
-    portrait.onerror = ()=>portrait.classList.add('hide');
-    portrait.onload  = ()=>portrait.classList.remove('hide');
-    portrait.classList.remove('hide');
-    $('#affTargetName').textContent = name;
-    $('#affTargetName').classList.add('picked');
-    $('#affTargetClear').classList.remove('hide');
-    await affFetchRank();
-  };
-  openCharaPicker();
-}
-
-$('#affTargetBtn').addEventListener('click', affOpenPicker);
-$('#affTargetClear').addEventListener('click', ()=>{
-  AFF.target = null; AFF.results = [];
-  $('#affTargetPortrait').classList.add('hide');
-  $('#affTargetName').textContent = 'Pick a target trainee to rank parents...';
-  $('#affTargetName').classList.remove('picked');
-  $('#affTargetClear').classList.add('hide');
-  $('#affRankList').innerHTML = '';
-  $('#affPairResult').innerHTML = '';
-});
-
-async function affFetchRank(){
-  if(!AFF.target) return;
-  $('#affRankList').innerHTML = '<div class="card"><span class="muted">Ranking all parents by compatibility...</span></div>';
-  try{
-    const r = await fetch('/api/affinity/rank', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({target: AFF.target})});
-    const d = await r.json();
-    AFF.results = d.results || [];
-
-    affRenderRank();
-  }catch(e){
-    $('#affRankList').innerHTML = `<div class="card"><span style="color:#e06b6b">Error: ${esc(e.message)}</span></div>`;
-  }
-}
-
-function affRenderRank(){
-  if(!AFF.results.length){
-    $('#affRankList').innerHTML = '<div class="card muted">No results. Pick a target first.</div>';
-    return;
-  }
-  const rows = AFF.results.map((r, i)=>{
-    const wsbBadge = r.wsb > 0 ? `<span class="wsb-badge cached">+${r.wsb}</span>` : '';
-    const owner = r.owner_name ? `<span class="friendb" style="font-size:10px">${esc(r.owner_name)}</span>` : '';
-    const wsbCol = `<div class="anum"><b style="color:var(--ok)">${r.wsb}</b><small>WSB</small></div>`;
-    return `<div class="aff-rank-row" data-tcid="${r.trained_chara_id}">
-      <span class="muted" style="width:28px;text-align:right;font-size:12px;flex-shrink:0">#${i+1}</span>
-      <img class="aport" src="/img/${r.card_id}" onerror="this.style.visibility='hidden'">
-      <div class="ainfo">
-        <div class="aname">${esc(r.name)} <span class="rankb" style="font-size:10px;padding:1px 5px">${r.rank_label}</span> ${owner}</div>
-        <div class="ameta">
-          GPs: ${r.gp_names.map(n=>esc(n)).join(' + ') || '—'} ${wsbBadge}
-        </div>
-      </div>
-      <div class="anums">
-        <div class="anum"><b style="color:var(--accent)">${r.cr}</b><small>Relation</small></div>
-        ${wsbCol}
-        <div class="anum"><b style="color:#ffcf6e">${r.chain}</b><small>Total</small></div>
-      </div>
-      <div class="abtns">
-        <button class="ghost" data-act="p1" data-tcid="${r.trained_chara_id}">→P1</button>
-        <button class="ghost" data-act="p2" data-tcid="${r.trained_chara_id}">→P2</button>
-      </div>
-    </div>`;
-  }).join('');
-  const header = `<div style="padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
-    <b style="color:var(--accent)">RANKING — ${esc(AFF.targetName)}</b>
-    <span class="muted" style="font-size:12px">${AFF.results.length} parents</span>
-  </div>`;
-  $('#affRankList').innerHTML = `<div class="card" style="padding:0">${header}${rows}</div>`;
-  // bind buttons
-  $$('#affRankList button[data-act]').forEach(btn=>{
-    btn.onclick = (e)=>{
-      e.stopPropagation();
-      const tcid = +btn.dataset.tcid;
-      const r = AFF.results.find(x=>x.trained_chara_id===tcid);
-      if(!r) return;
-      if(btn.dataset.act==='p1'){
-        AFF.p1 = r;
-        $('#affP1').innerHTML = `P1: <i>${esc(r.name)}</i>`;
-      } else {
-        AFF.p2 = r;
-        $('#affP2').innerHTML = `P2: <i>${esc(r.name)}</i>`;
-      }
-    };
-  });
-}
-
-$('#affCalcPair').onclick = async ()=>{
-  if(!AFF.target){$('#affPairResult').innerHTML='<span class="muted">Pick a target first</span>'; return;}
-  if(!AFF.p1||!AFF.p2){$('#affPairResult').innerHTML='<span class="muted">Select P1 and P2 from the ranking</span>'; return;}
-  if(AFF.p1.trained_chara_id===AFF.p2.trained_chara_id){$('#affPairResult').innerHTML='<span style="color:#e06b6b">P1 and P2 must be different</span>'; return;}
-  $('#affCalcPair').textContent='Calculating...'; $('#affCalcPair').disabled=true;
-  try{
-    const r = await fetch('/api/affinity/pair', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({target: AFF.target, p1_id: AFF.p1.trained_chara_id, p2_id: AFF.p2.trained_chara_id})});
-    const d = await r.json();
-    affRenderPair(d);
-  }catch(e){
-    $('#affPairResult').innerHTML = `<span style="color:#e06b6b">Error: ${esc(e.message)}</span>`;
-  }
-  $('#affCalcPair').textContent='Calculate pair'; $('#affCalcPair').disabled=false;
-};
-
-$('#affClearPair').onclick = ()=>{
-  AFF.p1 = null; AFF.p2 = null;
-  $('#affP1').innerHTML = 'P1: <i>—</i>';
-  $('#affP2').innerHTML = 'P2: <i>—</i>';
-  $('#affPairResult').innerHTML = '';
-};
-
-function affRenderPair(d){
-  const hasWsb = d.wsb_p1_known || d.wsb_p2_known;
-  const wsb1Badge = d.wsb_p1_known ? `<span class="wsb-badge cached">+${d.wsb_p1}</span>` : (hasWsb ? `<span class="wsb-badge missing">?</span>` : '');
-  const wsb2Badge = d.wsb_p2_known ? `<span class="wsb-badge cached">+${d.wsb_p2}</span>` : (hasWsb ? `<span class="wsb-badge missing">?</span>` : '');
-
-  // Build formula string based on what data we have
-  const parts = [];
-  parts.push(`${d.cr1}${d.wsb_p1?'+'+d.wsb_p1:''}`);
-  parts.push(`${d.cr2}${d.wsb_p2?'+'+d.wsb_p2:''}`);
-  parts.push(`${d.cross}`);
-  const formula = `(${parts[0]}) + (${parts[1]}) + ${parts[2]} = ${d.total}`;
-
-  function parentBox(label, name, card, cr, base, gpBonus, wsb, wsbKnown, wsbBadge, chain, gpNames){
-    const wsbRow = (wsbKnown || hasWsb)
-      ? `<div class="arow"><span>Race bonus (WSB) ${wsbBadge}</span><span style="color:${wsbKnown?'var(--ok)':'var(--mut)'}">+${wsbKnown?wsb:'?'}</span></div>` : '';
-    return `<div class="aff-pair-parent">
-      <div class="aph">
-        <img src="/img/${card}" onerror="this.style.visibility='hidden'">
-        <div><b>${esc(name)}</b><br><small class="muted">${label}</small></div>
-      </div>
-      <div class="arow"><span>Character relation</span><span>+${base}</span></div>
-      ${gpBonus?`<div class="arow"><span>GP relation bonus</span><span>+${gpBonus}</span></div>`:''}
-      <div class="arow"><span>Subtotal (relation)</span><span style="color:var(--accent)">${cr}</span></div>
-      ${wsbRow}
-      <div class="arow"><span>Parent contribution</span><span>${chain}</span></div>
-      ${gpNames.length?`<div style="font-size:11px;color:var(--mut);margin-top:6px">GPs: ${gpNames.map(n=>esc(n)).join(' + ')}</div>`:''}
-    </div>`;
-  }
-
-  const p1Box = parentBox('PARENT 1', d.p1_name, d.p1_card, d.cr1, d.p1_base, d.p1_gp_bonus, d.wsb_p1, d.wsb_p1_known, wsb1Badge, d.p1_chain, d.p1_gp_names||[]);
-  const p2Box = parentBox('PARENT 2', d.p2_name, d.p2_card, d.cr2, d.p2_base, d.p2_gp_bonus, d.wsb_p2, d.wsb_p2_known, wsb2Badge, d.p2_chain, d.p2_gp_names||[]);
-
-  const wsbNote = (!d.wsb_p1_known || !d.wsb_p2_known)
-    ? `<div style="text-align:center;margin-top:8px;font-size:11px;color:var(--mut)">
-        ${hasWsb?'Some':'All'} race bonuses not yet cached — real in-game value will be higher.
-       </div>` : '';
-
-  $('#affPairResult').innerHTML = `<div class="aff-pair-box">
-    <div class="aff-pair-total">${d.total}</div>
-    <div class="aff-pair-formula">${formula}</div>
-    <div style="text-align:center;margin-top:4px"><span class="rankb">${d.rank_label || '?'}</span>
-      <small class="muted" style="margin-left:6px">breeding ${esc(d.target_name)}</small></div>
-    <div class="aff-pair-grid">${p1Box}${p2Box}</div>
-    <div class="aff-pair-cross">
-      <b>Cross-term</b> (${esc(d.p1_name)} × ${esc(d.p2_name)}) = <b style="color:var(--accent)">+${d.cross}</b>
-    </div>
-    ${wsbNote}
-  </div>`;
-}
 
 // ---- Ko-fi banner ----
 if(localStorage.getItem('kofi_dismissed')){
