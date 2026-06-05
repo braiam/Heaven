@@ -155,6 +155,56 @@ def rank_label(rank_id):
     return f"R{rank_id}"
 
 
+# ── Uma evaluation rank from rank_score ─────────────────────────────────────
+# rank_id does NOT map 1:1 to a display label at the top: the "U" tiers are wide
+# bands subdivided into numbered sublevels (UG, UG1, UG2, ...), so several
+# rank_ids share one tier. The authoritative source is rank_score against the
+# in-game ratings thresholds below.
+_RATING_THRESHOLDS = [          # (label, min score), ascending — single ranks
+    ("G", 0), ("G+", 300), ("F", 600), ("F+", 900),
+    ("E", 1300), ("E+", 1800), ("D", 2300), ("D+", 2900),
+    ("C", 3500), ("C+", 4900), ("B", 6500), ("B+", 8200),
+    ("A", 10000), ("A+", 12100), ("S", 14500), ("S+", 15900),
+    ("SS", 17500), ("SS+", 19200),
+]
+# Top "U" tiers: each spans up to the next tier's threshold and is subdivided
+# into numbered sublevels every _U_STEP points (UG, UG1, UG2, ...). The 400-pt
+# step is derived from observed rank_score data and matches the in-game display
+# through UG4; revisit if higher tiers ever disagree.
+_U_TIERS = [
+    ("UG", 19600), ("UF", 23900), ("UE", 28800), ("UD", 34400),
+    ("UC", 40700), ("UB", 47600), ("UA", 55200), ("US", 63400),
+]
+_U_STEP = 400
+
+
+def rank_label_from_score(score):
+    """Map a uma's evaluation rank_score to its in-game rank label (G .. US),
+    including the numbered sublevels of the U-tier (UG, UG1, UG2, ...)."""
+    if score is None:
+        return "?"
+    try:
+        score = int(score)
+    except (TypeError, ValueError):
+        return "?"
+    if score < _U_TIERS[0][1]:
+        label = "?"
+        for name, lo in _RATING_THRESHOLDS:
+            if score >= lo:
+                label = name
+            else:
+                break
+        return label
+    tier_name, tier_lo = _U_TIERS[0]
+    for name, lo in _U_TIERS:
+        if score >= lo:
+            tier_name, tier_lo = name, lo
+        else:
+            break
+    sub = (score - tier_lo) // _U_STEP
+    return tier_name if sub <= 0 else f"{tier_name}{sub}"
+
+
 @lru_cache(maxsize=1)
 def race_instance_names():
     cur = _conn().cursor()

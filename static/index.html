@@ -725,7 +725,7 @@
   .ucard.ucard-friend{border-left:1px solid var(--line)}
   .ucard.ucard-friend::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan);opacity:.7;z-index:2}
   .ucard.open{border-color:var(--amber);box-shadow:0 0 0 1px rgba(255,182,39,.12),0 18px 44px -22px rgba(0,0,0,.8)}
-  .umarow-main{display:grid;grid-template-columns:264px 1fr 230px 158px;align-items:stretch}
+  .umarow-main{display:grid;grid-template-columns:258px 1fr 252px 158px;align-items:stretch}
   /* col 1 identity */
   .u-id{display:flex;align-items:center;gap:13px;padding:14px 16px;border-right:1px solid var(--line);min-width:0}
   .av{width:54px;height:54px;border-radius:50%;flex:none;position:relative;display:flex;align-items:center;justify-content:center;
@@ -742,6 +742,15 @@
   .u-id .subline{display:flex;align-items:center;gap:9px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink3);flex-wrap:wrap}
   .gradechip{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:12px;padding:2px 8px;border-radius:5px;letter-spacing:.5px;
     color:#0a0e14;background:var(--gc,var(--amber));box-shadow:0 0 12px -2px var(--gc,var(--amber))}
+  /* rank emblem (SVG by default; real PNG overrides via /rank_icon/<tier>) */
+  .rank-emblem{position:relative;display:inline-flex;width:26px;height:26px;vertical-align:middle;flex:none}
+  .rank-emblem .re-svg,.rank-emblem .re-img{width:26px;height:26px;display:block}
+  .rank-emblem .re-img{object-fit:contain}
+  .rank-emblem.re-S .re-svg,.rank-emblem.re-U .re-svg{filter:drop-shadow(0 0 5px rgba(255,182,39,.35))}
+  .rank-emblem.re-U .re-svg{filter:drop-shadow(0 0 5px rgba(138,160,255,.4))}
+  .re-sub{position:absolute;right:-5px;bottom:-4px;min-width:14px;height:14px;padding:0 2px;border-radius:7px;
+    background:var(--bg2,#11161f);border:1px solid rgba(255,255,255,.28);font-family:'JetBrains Mono',monospace;
+    font-size:9px;font-weight:800;line-height:13px;text-align:center;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.5)}
   .matchb{font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(92,219,122,.12);color:var(--green);border:1px solid rgba(92,219,122,.3);border-radius:4px;padding:1px 6px}
   /* col 2 telemetry */
   .u-tel{display:flex;align-items:center;padding:10px 16px;border-right:1px solid var(--line);min-width:0}
@@ -754,14 +763,30 @@
   .spark-lab{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:1px;color:var(--ink3);text-transform:uppercase}
   /* col 3 aptitude */
   .u-apt{padding:10px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:8px;justify-content:center;min-width:0}
-  .apt-grp{display:flex;align-items:center;gap:6px}
-  .apt-grp .ag-h{font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.5px;color:var(--ink3);width:30px;flex:none;text-transform:uppercase}
-  .apt-pips{display:flex;gap:5px;flex-wrap:wrap}
-  .apt{display:flex;align-items:center;gap:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink3)}
+  .apt-grp{display:flex;align-items:flex-start;gap:8px}
+  .apt-grp .ag-h{font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.5px;color:var(--ink3);width:30px;flex:none;text-transform:uppercase;padding-top:3px}
+  .apt-pips{display:grid;grid-template-columns:1fr 1fr;gap:4px 6px;flex:1;min-width:0}
+  .apt{display:flex;align-items:center;gap:3px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);min-width:0}
   .apt .ad{width:7px;height:7px;border-radius:2px;transform:rotate(45deg);background:var(--magenta);opacity:.35}
   .apt.has{color:var(--ink2)} .apt.has .ad{opacity:1}
   .apt.bmatch{color:var(--amber);font-weight:700} .apt.bmatch .ad{background:var(--amber);opacity:1;box-shadow:0 0 5px var(--amber)}
-  .apt .an{font-size:8px;letter-spacing:.3px}
+  .apt .an{font-size:9px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .apt.graded{color:var(--ink2)}
+  .apt .apt-g{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:800;line-height:1;min-width:12px;text-align:center;padding:2px 2px;border-radius:3px;letter-spacing:0}
+  .apt .apt-st{font-family:'JetBrains Mono',monospace;font-size:8px;opacity:.6}
+  /* aptitude grade colors — heatmap S..G (green=good -> red=off-aptitude), each hue distinct */
+  .apt .apt-g{border:1px solid transparent}
+  .apt-g.g-S{color:#1a1408;background:linear-gradient(135deg,#ffd968,#ffb627);box-shadow:0 0 8px rgba(255,182,39,.55);border-color:transparent}
+  .apt-g.g-A{color:#54df6e;background:rgba(84,223,110,.15);border-color:rgba(84,223,110,.5)}
+  .apt-g.g-B{color:#a6df50;background:rgba(166,223,80,.14);border-color:rgba(166,223,80,.46)}
+  .apt-g.g-C{color:#ecc63f;background:rgba(236,198,63,.13);border-color:rgba(236,198,63,.44)}
+  .apt-g.g-D{color:#f0a03d;background:rgba(240,160,61,.12);border-color:rgba(240,160,61,.42)}
+  .apt-g.g-E{color:#ec7d4e;background:rgba(236,125,78,.12);border-color:rgba(236,125,78,.4)}
+  .apt-g.g-F{color:#e35d5d;background:rgba(227,93,93,.11);border-color:rgba(227,93,93,.38)}
+  .apt-g.g-G{color:#bf5a6c;background:rgba(191,90,108,.08);border-color:rgba(191,90,108,.3)}
+  /* name emphasis: S gold, low grades dim so off-aptitudes recede */
+  .apt.apt-S .an{color:#ffd24a;font-weight:600}
+  .apt.apt-F .an,.apt.apt-G .an{color:var(--ink3)}
   .spark-pips{display:flex;gap:9px;flex-wrap:wrap;margin-top:1px}
   .spk{display:flex;align-items:center;gap:4px}
   .spk .sdot{width:7px;height:7px;border-radius:2px;transform:rotate(45deg)}
@@ -1036,6 +1061,27 @@
         <button id="srcMine" type="button" class="inv-src-pill">Yours</button>
         <button id="srcFriend" type="button" class="inv-src-pill">Friends</button>
       </div>
+      <select id="aptFilter" title="Filter by S-rank aptitude" style="font-size:12px;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--ink)">
+        <option value="">Aptitude: all</option>
+        <option value="any">★ Has any S</option>
+        <optgroup label="Surface · S">
+          <option value="Turf">Turf S</option>
+          <option value="Dirt">Dirt S</option>
+        </optgroup>
+        <optgroup label="Distance · S">
+          <option value="Sprint">Sprint S</option>
+          <option value="Mile">Mile S</option>
+          <option value="Medium">Medium S</option>
+          <option value="Long">Long S</option>
+        </optgroup>
+        <optgroup label="Style · S">
+          <option value="Front Runner">Front Runner S</option>
+          <option value="Pace Chaser">Pace Chaser S</option>
+          <option value="Late Surger">Late Surger S</option>
+          <option value="End Closer">End Closer S</option>
+        </optgroup>
+      </select>
+      <button id="aptStrong" type="button" class="inv-src-pill" title="Show only strong aptitudes (B and above)">B+ only</button>
       <select id="sortBy" title="sort" style="font-size:12px;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--ink)">
         <option value="affinity">Affinity</option>
         <option value="build">Build Fit</option>
@@ -1318,7 +1364,8 @@ const TYPE_ORDER=['blue','pink','green','white'];
 const TYPE_LABEL={blue:'Blue (stats)',pink:'Pink (aptitude)',green:'Green (unique)',white:'White (skills/races)'};
 
 async function load(){
-  DATA=await (await fetch('/api/data')).json();
+  const [dataRes] = await Promise.all([fetch('/api/data'), loadRankIcons()]);
+  DATA=await dataRes.json();
   $('#src').textContent=(DATA.source?'source: '+DATA.source.split(/[\\/]/).pop():'no data')
       +`  |  ${DATA.mine.length} yours, ${DATA.rentable.length} borrowable`;
   const stats=['Speed','Stamina','Power','Guts','Wit'];
@@ -1376,6 +1423,50 @@ function gradeCol(label){
   const m={S:'#ffd34d',U:'#ff8a3d',A:'#ff8a3d',B:'#ff5d8f',C:'#36e3c8',D:'#6f86ff',E:'#7d8aa0',F:'#566273',G:'#3c4756'};
   return m[c]||'var(--amber)';
 }
+
+// ===== Rank emblems (SVG by default, real PNG swap-in via /rank_icon/<tier>) =====
+let RANK_ICONS = new Set();   // tier keys that have a real PNG (filled at load)
+// tier color key -> [light, dark, textColor] for the SVG shield gradient
+const RANK_TIER_COLORS = {
+  G:['#a8adb8','#646b78','#fff'], F:['#b79be0','#7c5fc0','#fff'],
+  E:['#8f9ce8','#5b6bd0','#fff'], D:['#5fb3ee','#2f7fc8','#fff'],
+  C:['#6fd47e','#33a247','#062a0e'], B:['#f47bb0','#d83f86','#fff'],
+  A:['#f4897a','#e2553f','#fff'],  S:['#ffd970','#f0a92a','#3a2600'],
+  U:['#9aabff','#6a4fd0','#fff'],
+};
+// Parse a label into emblem parts: color key, the text shown on the shield,
+// the sublevel number to overlay, and the icon filename key.
+function rankParts(label){
+  const s=String(label||'').trim();
+  const um=s.match(/^(U[GFEDCBAS])(\d*)$/);          // UG, UG1, UF, US, ...
+  if(um) return {colorKey:'U', text:um[1], sub:um[2]||'', iconKey:um[1]};
+  const colorKey=(s.charAt(0)||'G').toUpperCase();   // S covers SS/SS+ too
+  return {colorKey, text:s, sub:'', iconKey:s.replace('+','p')};
+}
+function rankSvg(colorKey, text){
+  const [lt,dk,tx]=RANK_TIER_COLORS[colorKey]||RANK_TIER_COLORS.G;
+  const fs = text.length>=3?8:(text.length===2?11:14);
+  return `<svg class="re-svg" viewBox="0 0 30 30" width="26" height="26" aria-hidden="true">
+    <defs><linearGradient id="rg-${colorKey}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${lt}"/><stop offset="1" stop-color="${dk}"/></linearGradient></defs>
+    <path d="M15 1.5 L26.5 6 V15.5 C26.5 22 21 26 15 28.5 C9 26 3.5 22 3.5 15.5 V6 Z"
+      fill="url(#rg-${colorKey})" stroke="rgba(255,255,255,.5)" stroke-width="1.1"/>
+    <text x="15" y="15.5" text-anchor="middle" dominant-baseline="central"
+      font-family="'JetBrains Mono',monospace" font-weight="800" font-size="${fs}" fill="${tx}">${esc(text)}</text>
+  </svg>`;
+}
+function rankEmblem(label, rankId, score){
+  const p=rankParts(label);
+  const body = RANK_ICONS.has(p.iconKey)
+    ? `<img class="re-img" src="/rank_icon/${encodeURIComponent(p.iconKey)}" alt="${esc(p.text)}">`
+    : rankSvg(p.colorKey, p.text);
+  const sub = p.sub ? `<span class="re-sub">${esc(p.sub)}</span>` : '';
+  const tip = `Trained rank ${esc(label)} (R${rankId??'?'}) · Score ${(score||0).toLocaleString()}`;
+  return `<span class="rank-emblem re-${p.colorKey}" title="${tip}">${body}${sub}</span>`;
+}
+async function loadRankIcons(){
+  try{ const r=await fetch('/api/rank_icons'); if(r.ok){ const d=await r.json(); RANK_ICONS=new Set(d.available||[]); } }catch(e){}
+}
 // Build keyword test reusing BUILD_SKILL_KW for the currently selected build.
 function _buildKWs(){
   const style=$('#invStyle')?.value, dist=$('#invDistance')?.value;
@@ -1424,7 +1515,8 @@ function sparkline(u){
     <div class="spark-lab"><span>SPD</span><span>STA</span><span>PWR</span><span>GTS</span><span>WIT</span></div>
   </div>`;
 }
-// Aptitude column from PINK sparks (no letter grades exist). Grouped Surface/Distance/Style as star counts.
+// Aptitude column: real in-game letter grades (S..G) from u.apt when present,
+// with pink-spark star counts shown alongside. Grouped Surface/Distance/Style.
 const APT_SURF=['Turf','Dirt'], APT_DIST=['Sprint','Mile','Medium','Long'], APT_STYLE=['Front Runner','Pace Chaser','Late Surger','End Closer'];
 const APT_SHORT={Turf:'Tf',Dirt:'Dt',Sprint:'Sp',Mile:'Mi',Medium:'Md',Long:'Lg','Front Runner':'F','Pace Chaser':'P','Late Surger':'L','End Closer':'E'};
 function _pinkTotal(u,name){const a=(u.agg||[]).find(x=>x.type==='pink'&&x.name===name);return a?(a.total||0):0;}
@@ -1435,12 +1527,21 @@ function _buildAptMatch(name){
   return false;
 }
 function aptColumn(u){
+  const apt=u.apt||{};
+  const strong=$('#aptStrong')?.classList.contains('active');  // "B+ only" toggle
   const grp=(label,names)=>{
     const pips=names.map(n=>{
+      const ap=apt[n];
+      // When B+ only: hide C and below (rank<6). Ungraded pips (old captures) stay.
+      if(strong && ap && ap.rank<6) return '';
       const t=_pinkTotal(u,n), has=t>0, bm=_buildAptMatch(n);
-      const cls='apt'+(has?' has':'')+(bm?' bmatch':'');
-      return `<span class="${cls}" title="${esc(n)} ${t}★"><span class="ad"></span><span class="an">${APT_SHORT[n]||n}</span>${has?t:''}</span>`;
-    }).join('');
+      const g=ap?ap.grade:null;
+      const cls='apt'+(has?' has':'')+(bm?' bmatch':'')+(g?' graded apt-'+g:'');
+      const gradeEl=g?`<span class="apt-g g-${g}">${g}</span>`:`<span class="ad"></span>`;
+      const starEl=has?`<span class="apt-st">${t}</span>`:'';
+      const tip=esc(n)+(g?(' — '+g+' aptitude'):'')+(has?(' · '+t+'★ spark'):'');
+      return `<span class="${cls}" title="${tip}">${gradeEl}<span class="an">${n}</span>${starEl}</span>`;
+    }).filter(Boolean).join('');
     return `<div class="apt-grp"><span class="ag-h">${label}</span><div class="apt-pips">${pips}</div></div>`;
   };
   return grp('SURF',APT_SURF)+grp('DIST',APT_DIST)+grp('STYLE',APT_STYLE);
@@ -1666,7 +1767,7 @@ function umaCard(u){
         <div class="who">
           <div class="nm">${esc(u.name)}${isFriend?`<span class="own">@${esc(u.owner_name||'friend')}</span>`:''}</div>
           <div class="subline">
-            <span class="gradechip" style="--gc:${gradeCol(grade)}" title="Trained grade (R${u.rank??'?'})">${esc(grade)}</span>
+            ${rankEmblem(grade, u.rank, score)}
             <span>G1·${u.g1||0}</span>
             <span>WS·${u.white_count||0}</span>
             ${isFriend?'':`<span>${(u.fans||0).toLocaleString()} fans</span>`}
@@ -1877,12 +1978,18 @@ function renderInv(){
   _rebuildHighlight();
   const f=$('#filter').value.toLowerCase().trim();
   const minW=+($('#minWhite').value||0), sortBy=$('#sortBy').value;
+  const aptF=$('#aptFilter')?.value||'';
   let rows=[];
   allUmas().forEach(u=>{
     if(SRC_FILTER==='mine'&&u.src==='friend')return;
     if(SRC_FILTER==='friend'&&u.src!=='friend')return;
     if(TARGET_CARD && TARGET_EXCLUDED.has(u.trained_chara_id)) return;
     if((u.white_count||0)<minW)return;
+    if(aptF){
+      const apt=u.apt||{};
+      if(aptF==='any'){ if(!Object.values(apt).some(a=>a&&a.grade==='S'))return; }
+      else if(!(apt[aptF]&&apt[aptF].grade==='S')) return;
+    }
 
     if(f){const hay=(u.name+' '+(u.note||'')+' '+dtags(u).join(' ')+' '+(u.owner_name||'')).toLowerCase();
           if(!hay.includes(f))return;}
@@ -2598,6 +2705,8 @@ $$('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 $('#filter').addEventListener('input',renderInv);
 $('#minWhite').addEventListener('input',renderInv);
 $('#sortBy').addEventListener('change',renderInv);
+$('#aptFilter')?.addEventListener('change',renderInv);
+$('#aptStrong')?.addEventListener('click',()=>{ $('#aptStrong').classList.toggle('active'); renderInv(); });
 $('#invStyle').addEventListener('change',()=>{ if($('#invStyle').value||$('#invDistance').value){$('#sortBy').value='build';} renderInv(); _updateBuildMsg(); });
 $('#invDistance').addEventListener('change',()=>{ if($('#invStyle').value||$('#invDistance').value){$('#sortBy').value='build';} renderInv(); _updateBuildMsg(); });
 $('#fcats').addEventListener('click',e=>{
@@ -2880,6 +2989,8 @@ function captureUIState(){
     filter: $('#filter').value,
     minWhite: $('#minWhite').value,
     sortBy: $('#sortBy').value,
+    aptFilter: $('#aptFilter')?.value || '',
+    aptStrong: $('#aptStrong')?.classList.contains('active') || false,
     srcFilter: SRC_FILTER,
     invTarget: $('#invTargetName').classList.contains('picked') ? $('#invTargetName').textContent : '',
     targetCard: TARGET_CARD,
@@ -2906,6 +3017,8 @@ async function restoreUIState(s){
   if(s.filter!=null) $('#filter').value = s.filter;
   if(s.minWhite!=null) $('#minWhite').value = s.minWhite;
   if(s.sortBy) $('#sortBy').value = s.sortBy;
+  if(s.aptFilter!=null && $('#aptFilter')) $('#aptFilter').value = s.aptFilter;
+  if(s.aptStrong && $('#aptStrong')) $('#aptStrong').classList.add('active');
   if(s.srcFilter){ SRC_FILTER = s.srcFilter; updateSrcBtns(); }
   if(s.filters){ for(const k in FILTERS) if(s.filters[k]) FILTERS[k] = s.filters[k]; renderFcats(); }
   if(s.breedTarget) $('#target').value = s.breedTarget;
@@ -3114,14 +3227,14 @@ function ttRender(){
   let html = `<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--line);font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:700">
     <span style="min-width:180px">Uma</span>
     <span class="tt-ra2-stats">
-      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('avg_score')">AVG${TT_SORT_KEY==='avg_score'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
-      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('cv')">CV%${TT_SORT_KEY==='cv'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
-      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('ceiling')">BEST${TT_SORT_KEY==='ceiling'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
-      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('floor')">WORST${TT_SORT_KEY==='floor'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
-      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('overall_act_pct')">ACT%${TT_SORT_KEY==='overall_act_pct'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
+      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('avg_score')" title="Average score across all races this uma ran. Higher = stronger overall. Click to sort.">AVG${TT_SORT_KEY==='avg_score'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
+      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('cv')" title="CV% (Coefficient of Variation) = consistency. Std deviation ÷ average, as a percentage. LOWER is better: low % = steady race to race, high % = swingy/inconsistent. Click to sort.">CV%${TT_SORT_KEY==='cv'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
+      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('ceiling')" title="BEST = the highest single-race score this uma hit. Its ceiling / best case. Click to sort.">BEST${TT_SORT_KEY==='ceiling'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
+      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('floor')" title="WORST = the lowest single-race score this uma hit. Its floor / worst case. A high floor means it rarely flops. Click to sort.">WORST${TT_SORT_KEY==='floor'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
+      <span style="min-width:52px;text-align:center;cursor:pointer" onclick="ttSetSort('overall_act_pct')" title="ACT% = skill activation rate. How often this uma's skills actually fired across its races. Higher = skills trigger reliably (good skill picks for this build). Click to sort.">ACT%${TT_SORT_KEY==='overall_act_pct'?(TT_SORT_DIR>0?' &uarr;':' &darr;'):''}</span>
     </span>
-    <span style="flex:1;min-width:80px;max-width:180px;text-align:center">TREND</span>
-    <span style="min-width:80px;text-align:center;cursor:pointer" onclick="ttSetSort('avg_score')">VERDICT</span>
+    <span style="flex:1;min-width:80px;max-width:180px;text-align:center" title="TREND = sparkline of this uma's scores over its recent races, oldest to newest. Shows whether it's trending up or down.">TREND</span>
+    <span style="min-width:80px;text-align:center;cursor:pointer" onclick="ttSetSort('avg_score')" title="VERDICT = overall rating (GOAT / STRONG / SOLID / WEAK / BENCH) from average score and consistency. Click to sort.">VERDICT</span>
   </div>`;
 
   html += sorted.map(u=>{

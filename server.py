@@ -554,11 +554,12 @@ def uma_ui(c, notes, src="mine"):
         "card_id": c["card_id"],
         "name": c["name"],
         "rank": c["rank"],
-        "rank_label": master.rank_label(c["rank"]),
+        "rank_label": master.rank_label_from_score(c.get("rank_score")),
         "rank_score": c.get("rank_score"),
         "fans": c["fans"],
         "owner_name": c.get("owner_name"),
         "stats": c["stats"],
+        "apt": c.get("apt") or {},
         "sparks": [{"name": sp["name"], "stars": sp["stars"], "type": sp["type"]}
                    for sp in c["own_sparks"]],
         "blue": {k: round(v, 1) for k, v in heir.blue_strength(c).items() if v},
@@ -797,6 +798,30 @@ def img(card_id: int):
         except Exception:
             continue
     return JSONResponse({"error": "no image"}, status_code=404)
+
+
+# ── Rank emblem icons (real PNGs override the built-in SVG when present) ──────
+RANK_ICON_DIR = HERE / "data" / "rank_icons"
+
+
+@app.get("/api/rank_icons")
+def api_rank_icons():
+    """Which rank tiers have a real PNG dropped in data/rank_icons/.
+    The frontend uses these instead of its SVG emblems; everything else
+    falls back to SVG automatically."""
+    avail = []
+    if RANK_ICON_DIR.exists():
+        avail = [p.stem for p in RANK_ICON_DIR.glob("*.png")]
+    return {"available": avail}
+
+
+@app.get("/rank_icon/{tier}")
+def rank_icon(tier: str):
+    safe = "".join(ch for ch in tier if ch.isalnum())   # UG, SSp, Ap, ...
+    p = RANK_ICON_DIR / f"{safe}.png"
+    if p.exists():
+        return FileResponse(str(p), media_type="image/png")
+    return JSONResponse({"error": "not found"}, status_code=404)
 
 
 @app.get("/icon/{card_id}")
@@ -1566,7 +1591,7 @@ def api_affinity_rank(req: ExactAffinityReq):
             "name": c["name"],
             "src": "friend" if c.get("owner_name") else "mine",
             "owner_name": c.get("owner_name"),
-            "rank_label": master.rank_label(c.get("rank")),
+            "rank_label": master.rank_label_from_score(c.get("rank_score")),
             "chara_id": chara,
             "cr": cr,
             "cr_base": base,

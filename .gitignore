@@ -14,6 +14,15 @@ notes.json
 # Icon cache (auto-downloaded)
 data/icons/
 
+# Runtime capture logs (local)
+data/mitm_err.log
+data/mitm_out.log
+data/mitmdump_stderr.log
+data/mitmdump_stdout.log
+
+# Local design experiments
+design-mockups/
+
 # Large assets
 static/oguri_chibi.gif
 

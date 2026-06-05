@@ -81,6 +81,40 @@ def decode_sparks(factor_info_array, fmap):
     return out
 
 
+# ── In-game aptitude grades (S..G) ──────────────────────────────────────────
+# The game stores each trained uma's aptitudes as proper_* integer ranks 1..8.
+# These are the letter grades the player sees on the character screen — distinct
+# from pink sparks (which are inheritance factors measured in stars).
+APT_GRADE = {8: "S", 7: "A", 6: "B", 5: "C", 4: "D", 3: "E", 2: "F", 1: "G"}
+
+# proper_* field -> (group, Global label). Labels match the inventory UI's
+# APT_SURF / APT_DIST / APT_STYLE names exactly so the frontend can key by name.
+APT_FIELDS = (
+    ("proper_ground_turf",          "surface",  "Turf"),
+    ("proper_ground_dirt",          "surface",  "Dirt"),
+    ("proper_distance_short",       "distance", "Sprint"),
+    ("proper_distance_mile",        "distance", "Mile"),
+    ("proper_distance_middle",      "distance", "Medium"),
+    ("proper_distance_long",        "distance", "Long"),
+    ("proper_running_style_nige",   "style",    "Front Runner"),
+    ("proper_running_style_senko",  "style",    "Pace Chaser"),
+    ("proper_running_style_sashi",  "style",    "Late Surger"),
+    ("proper_running_style_oikomi", "style",    "End Closer"),
+)
+
+
+def parse_aptitudes(entry):
+    """Extract the 10 in-game aptitude grades from a trained_chara entry.
+    Returns {label: {"grade": "S", "rank": 8, "group": "distance"}}.
+    Empty dict for older captures that lack the proper_* fields."""
+    out = {}
+    for field, group, label in APT_FIELDS:
+        v = entry.get(field)
+        if isinstance(v, int) and 1 <= v <= 8:
+            out[label] = {"grade": APT_GRADE[v], "rank": v, "group": group}
+    return out
+
+
 def parse_chara(entry, fmap, owner_name=None):
     return {
         "trained_chara_id": entry.get("trained_chara_id"),
@@ -94,6 +128,7 @@ def parse_chara(entry, fmap, owner_name=None):
         "win_saddle_id_array": entry.get("win_saddle_id_array") or [],
         "race_result_list": entry.get("race_result_list") or [],
         "stats": {s: entry.get(s, 0) for s in ("speed", "stamina", "power", "guts", "wiz")},
+        "apt": parse_aptitudes(entry),
         "own_sparks": decode_sparks(entry.get("factor_info_array"), fmap),
         "grandparents": [
             {"position_id": g.get("position_id"), "card_id": g.get("card_id"),
