@@ -101,6 +101,8 @@ python -m pip install -r requirements.txt
 
 This installs **everything** in one go — the web server, the data decoder (`msgpack` + `pycryptodome`), and `mitmproxy` — all into the same Python environment. Using `python -m pip` (not bare `pip`) guarantees they land in the Python that `start.bat` actually runs.
 
+> ⛔ **Do NOT install mitmproxy from mitmproxy.org (the Windows installer / standalone `.exe`).** That build ships its **own frozen, embedded Python** that you cannot `pip install` into — so the capture addon will fail with `ModuleNotFoundError: No module named 'msgpack'` and `mitmdump exited immediately`. mitmproxy **must** come from pip (it's already in `requirements.txt`), so it shares the same environment as `msgpack`/`pycryptodome`. If you previously installed the standalone, uninstall it (Windows Settings → Apps → mitmproxy) before continuing.
+
 ### Step 2: Import your umas
 
 Run Heaven:
@@ -138,7 +140,7 @@ The Team Trials features need live match data captured through mitmproxy. This i
 
 #### 3a. Generate the mitmproxy certificate
 
-`mitmproxy` was already installed in Step 1 — **do not install it separately** (a second install can land in a different Python and break capture). Just run `mitmdump` once to generate the CA certificate, then close it immediately with `Ctrl+C`:
+`mitmproxy` was already installed in Step 1 via pip — **do not install it separately**, and especially **do not download the standalone installer from mitmproxy.org** (its embedded Python can't see `msgpack`/`pycryptodome`, which breaks capture — see the warning in Step 1). Just run `mitmdump` once to generate the CA certificate, then close it immediately with `Ctrl+C`:
 
 ```bash
 mitmdump
@@ -198,7 +200,7 @@ The proxy auto-detects your `udid` from game request headers on first capture. I
 |---------|----------|
 | `Import-Certificate : The certificate file could not be found` | A backslash got dropped from the path. Use exactly `"$env:USERPROFILE\.mitmproxy\mitmproxy-ca-cert.cer"` — note the `\` before `.mitmproxy`. Or just double-click the `.cer` file and use the GUI steps instead |
 | SSL errors or `SEC_ERROR` in the game | Certificate not installed correctly. Redo step 3b — make sure you select **Local Machine** and the **Trusted Root** store, not Current User |
-| `mitmdump exited immediately` / `Error logged during startup, exiting…` | The capture addon failed to load — almost always because `msgpack`/`pycryptodome` aren't installed in the **same** Python as `mitmdump`. Fix: `python -m pip install -r requirements.txt`. To see the exact error, open `data\mitmdump_stderr.log`, or run `mitmdump -s discover_addon.py --listen-port 8080 --set block_global=false` (the `-s discover_addon.py` is essential — without it mitmdump starts fine and hides the real problem) |
+| `mitmdump exited immediately` / `Error logged during startup, exiting…` / `ModuleNotFoundError: No module named 'msgpack'` | The capture addon can't import `msgpack`/`pycryptodome` because `mitmdump` is running under a different Python than the one those packages were installed into. **#1 cause: you installed the standalone mitmproxy** (Windows installer from mitmproxy.org), which has its own frozen embedded Python. Fix: uninstall it (Windows Settings → Apps → mitmproxy), then `python -m pip install -r requirements.txt` so the pip build is used. Verify with `(Get-Command mitmdump).Source` — it should point at your Python's `Scripts\mitmdump.exe`, **not** `Program Files\mitmproxy`. To see the exact error, run `mitmdump -s discover_addon.py --listen-port 8080 --set block_global=false` (the `-s discover_addon.py` is essential — without it mitmdump starts fine and hides the real problem) |
 | Capture running but no data appears | Game traffic isn't going through the proxy. Check Windows Settings > Proxy — it should be set to `127.0.0.1:8080` |
 | 0 trials added after processing | Data might already be processed. Run `python tt_analyze.py` manually to see full output |
 | Game can't connect to servers | Stop capture first, verify your internet works without the proxy, then try again |
@@ -221,7 +223,7 @@ Then open the game. You should see lines like `team_stadium/start`, `team_stadiu
 ```bash
 cd Heaven
 git pull
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 .\start.bat
 ```
 
