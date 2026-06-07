@@ -196,6 +196,32 @@
   .setup-msg{padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px;color:var(--mut);margin-top:14px;white-space:pre-wrap;word-break:break-word;max-height:90px;overflow:auto}
   .setup-msg.err{color:#f99;border-color:#5a2222}
   .setup-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
+  /* ---- Frida+Steam panel — visual redesign only (IDs/behaviour unchanged) ---- */
+  .fp-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;margin-top:16px;padding:14px 6px 2px}
+  .fp-badge{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(120% 120% at 30% 20%,rgba(255,182,39,.18),rgba(54,227,200,.10));
+    border:1px solid var(--line2);box-shadow:0 8px 24px -10px rgba(255,182,39,.55),inset 0 1px 0 rgba(255,255,255,.05)}
+  .fp-badge svg{width:28px;height:28px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .fp-h{font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--txt)}
+  .fp-sub{font-size:12.5px;color:var(--mut);max-width:340px;line-height:1.5}
+  .fp-feats{display:flex;flex-direction:column;gap:8px;margin:16px 0 2px}
+  .fp-feat{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;color:var(--txt);
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;line-height:1.4}
+  .fp-feat .ic{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(92,219,122,.14);color:var(--ok);font-size:11px;font-weight:800;margin-top:1px}
+  .fp-feat span{color:var(--mut)}
+  .fp-field{margin-top:2px}
+  .fp-field .lab{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+  .fp-input{position:relative;display:flex;align-items:center}
+  .fp-input>svg{position:absolute;left:12px;width:16px;height:16px;stroke:var(--mut);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+  .fp-input input{width:100%;padding-left:38px !important;height:42px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px}
+  .fp-input input:focus{border-color:var(--accent)}
+  .fp-2fa{margin-top:12px;padding:12px;border:1px dashed var(--line2);border-radius:10px;background:rgba(54,227,200,.04)}
+  .fp-2fa .lab{color:var(--cyan)}
+  .fp-2fa input{width:100%;letter-spacing:.5em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;text-align:center;font-weight:700}
+  .fp-secure{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:11px;color:var(--mut);
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;line-height:1.4}
+  .fp-secure svg{flex:none;width:14px;height:14px;stroke:var(--ok);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
   /* ---- badges ---- */
@@ -975,29 +1001,55 @@
       </div>
 
       <div id="setupCaptureView">
-        <div style="font-size:12px;color:var(--mut);margin-top:12px">
-          Captures the in-game <code>auth_key</code> via Frida, then asks for your Steam credentials
-          to refresh the session ticket. Includes friends' borrowable parents.
-          <span style="color:var(--mut)">Steam credentials are stored locally, encrypted via Windows DPAPI
-          (bound to your Windows user on this PC — same scheme Chrome uses for saved passwords).</span>
+        <div class="fp-hero">
+          <div class="fp-badge">
+            <svg viewBox="0 0 24 24"><path d="M12 2l7 4v5c0 4.5-3 8.5-7 9-4-.5-7-4.5-7-9V6l7-4z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <div class="fp-h">Connect your account</div>
+          <div class="fp-sub">Heaven reads your roster straight from the running game and refreshes your session — nothing is uploaded anywhere.</div>
         </div>
-        <div class="setup-actions" style="margin-top:14px">
+        <div class="fp-feats">
+          <div class="fp-feat"><div class="ic">&#10003;</div><div>Captures your in-game key locally via Frida. <span>No browser, no third-party server.</span></div></div>
+          <div class="fp-feat"><div class="ic">&#10003;</div><div>Pulls your full inventory <span>plus friends' borrowable parents.</span></div></div>
+          <div class="fp-feat"><div class="ic">&#10003;</div><div>Credentials encrypted with Windows DPAPI. <span>They never leave this PC.</span></div></div>
+        </div>
+        <div class="setup-actions" style="margin-top:16px">
           <button class="ghost" id="setupCancel" type="button">Cancel</button>
           <button id="setupStartCapture" type="button">Open game &amp; capture</button>
         </div>
       </div>
 
       <div id="setupSteamView" class="hide">
-        <div class="setup-form">
-          <label>Steam username
-            <input id="setupUser" autocomplete="username" placeholder="...">
-          </label>
-          <label>Steam password
-            <input id="setupPass" type="password" autocomplete="current-password" placeholder="...">
-          </label>
-          <label id="setupCodeWrap" class="hide">Steam Guard code (2FA)
+        <div class="fp-hero" style="padding-bottom:0">
+          <div class="fp-badge">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+          </div>
+          <div class="fp-h">Steam sign-in</div>
+          <div class="fp-sub">Used once to mint a fresh session ticket. Stored encrypted on this PC only.</div>
+        </div>
+        <div class="setup-form" style="margin-top:16px">
+          <div class="fp-field">
+            <span class="lab">Steam username</span>
+            <div class="fp-input">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+              <input id="setupUser" autocomplete="username" placeholder="username">
+            </div>
+          </div>
+          <div class="fp-field">
+            <span class="lab">Steam password</span>
+            <div class="fp-input">
+              <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+              <input id="setupPass" type="password" autocomplete="current-password" placeholder="password">
+            </div>
+          </div>
+          <div class="fp-2fa hide" id="setupCodeWrap">
+            <span class="lab">Steam Guard code (2FA)</span>
             <input id="setupCode" maxlength="5" placeholder="ABCDE">
-          </label>
+          </div>
+        </div>
+        <div class="fp-secure">
+          <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          Encrypted locally with Windows DPAPI — never transmitted anywhere.
         </div>
         <div class="setup-actions">
           <button class="ghost" id="setupSkip" type="button">Cancel</button>
