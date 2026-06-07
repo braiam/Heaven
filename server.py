@@ -76,6 +76,12 @@ ICON_CACHE.mkdir(parents=True, exist_ok=True)
 RACE_ICON_CACHE = HERE / "data" / "race_icons"
 RACE_ICON_CACHE.mkdir(parents=True, exist_ok=True)
 
+# Character portrait cache. Portraits are downloaded from gametora on demand and
+# cached here. This dir MUST exist or the cache-write throws (caught silently) and
+# /img returns 404 — which is why portraits were missing on a fresh install.
+IMAGES_CACHE = HERE / "data" / "images"
+IMAGES_CACHE.mkdir(parents=True, exist_ok=True)
+
 
 def icon_urls(card_id: int) -> list[str]:
     chara_id = card_id // 100
