@@ -511,9 +511,45 @@ def chara_brief(c, want_lower):
     }
 
 
+# ── Aptitude (Red Gene) inheritance ─────────────────────────────────────────
+# Total matching pink (aptitude) stars from the 6 lineage entities raise the
+# trainee's base grade: 1-3★→+1, 4-6★→+2, 7-9★→+3, 10+★→+4, capped at A (7).
+def red_gene_gain(total_stars: int) -> int:
+    s = total_stars or 0
+    if s <= 0:  return 0
+    if s <= 3:  return 1
+    if s <= 6:  return 2
+    if s <= 9:  return 3
+    return 4
+
+
+def apply_red_gene(base_grade: int, total_stars: int) -> int:
+    """base_grade 1..8 (G..S). Capped at A (7); a base already >= A is unchanged."""
+    if base_grade >= 7:
+        return base_grade
+    return min(7, base_grade + red_gene_gain(total_stars))
+
+
+def apt_stars_for_uma(c, apt_label_lower: str) -> int:
+    """Matching pink (aptitude) stars from a parent's own sparks + its 2 DIRECT
+    grandparents (position 10/20). Full value, no GP weighting."""
+    total = 0
+    for sp in c.get("own_sparks", []):
+        if sp.get("type") == "pink" and sp["name"].lower() == apt_label_lower:
+            total += sp["stars"]
+    for g in c.get("grandparents", []):
+        if g.get("position_id") not in (10, 20):
+            continue
+        for sp in g.get("sparks", []):
+            if sp.get("type") == "pink" and sp["name"].lower() == apt_label_lower:
+                total += sp["stars"]
+    return total
+
+
 def optimize_breed(ds, target, want, w_affinity=2.0, w_spark=1.0,
                    own_pool=60, rent_pool=40, top=15, allowed_ids=None,
-                   skill_weights=None, use_eproc=True):
+                   skill_weights=None, use_eproc=True,
+                   apt_label=None, apt_base_grade=1, apt_min_grade=None):
     """Devuelve {own:[...], rental:[...]} con las mejores parejas.
 
     When use_eproc=True (default), uses the expected-proc model:
@@ -524,6 +560,7 @@ def optimize_breed(ds, target, want, w_affinity=2.0, w_spark=1.0,
         obj = w_affinity × total_affinity + w_spark × star_count
     """
     want_lower = {w.strip().lower() for w in want if w.strip()}
+    apt_l = apt_label.lower() if apt_label else None
     mine = ds["mine"]
     if allowed_ids is not None:
         allowed = set(allowed_ids)
@@ -584,22 +621,46 @@ def optimize_breed(ds, target, want, w_affinity=2.0, w_spark=1.0,
                 "p1": chara_brief(p1, want_lower), "p2": chara_brief(p2, want_lower),
             }
 
+    # When targeting an aptitude, prioritise carriers of that aptitude in the
+    # pool so relevant pairs aren't dropped by the spark prescore.
+    if apt_l:
+        apt_pre = {id(c): apt_stars_for_uma(c, apt_l) for c in mine + rentable}
+        sv = {k: apt_pre.get(k, 0) * 1000 + v for k, v in sv.items()}
+
+    def _apt(a, b, r):
+        """Attach aptitude result to pair r; return False to filter it out."""
+        if not apt_l:
+            return True
+        stars = apt_stars_for_uma(a, apt_l) + apt_stars_for_uma(b, apt_l)
+        grade = apply_red_gene(apt_base_grade, stars)
+        if apt_min_grade and grade < apt_min_grade:
+            return False
+        r["apt_stars"] = stars
+        r["apt_result_n"] = grade
+        r["apt_result"] = APT_GRADE.get(grade, "?")
+        r["apt_base"] = APT_GRADE.get(apt_base_grade, "?")
+        return True
+
     own = []
     pool = sorted(mine, key=lambda c: sv[id(c)], reverse=True)[:own_pool]
     for a, b in combinations(pool, 2):
         if chid[id(a)] == chid[id(b)]:
             continue
-        own.append(evaluate(a, b))
+        r = evaluate(a, b)
+        if _apt(a, b, r):
+            own.append(r)
     own.sort(key=lambda x: x["obj"], reverse=True)
 
     rental = []
     if rentable:
         top_mine = sorted(mine, key=lambda c: sv[id(c)], reverse=True)[:rent_pool]
         for a in top_mine:
-            for r in rentable:
-                if chid[id(a)] == chid[id(r)]:
+            for r2 in rentable:
+                if chid[id(a)] == chid[id(r2)]:
                     continue
-                rental.append(evaluate(a, r))
+                r = evaluate(a, r2)
+                if _apt(a, r2, r):
+                    rental.append(r)
         rental.sort(key=lambda x: x["obj"], reverse=True)
 
     return {"own": own[:top], "rental": rental[:top],

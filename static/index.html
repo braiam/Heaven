@@ -1229,6 +1229,28 @@
           <option value="Dirt">Dirt</option>
         </select>
       </div>
+      <div class="breed-field">
+        <label class="breed-fl">Aptitude → grade</label>
+        <div style="display:flex;gap:4px">
+          <select id="breedAptTarget" class="breed-sel" style="min-width:88px" title="Find parents whose Red Gene (aptitude) sparks raise the trainee to the chosen grade. Only pairs that REACH it are shown.">
+            <option value="">— off —</option>
+            <option value="Sprint">Sprint</option>
+            <option value="Mile">Mile</option>
+            <option value="Medium">Medium</option>
+            <option value="Long">Long</option>
+            <option value="Turf">Turf</option>
+            <option value="Dirt">Dirt</option>
+            <option value="Front Runner">Front Runner</option>
+            <option value="Pace Chaser">Pace Chaser</option>
+            <option value="Late Surger">Late Surger</option>
+            <option value="End Closer">End Closer</option>
+          </select>
+          <select id="breedAptGrade" class="breed-sel" style="width:52px" title="Target grade to reach">
+            <option value="A">A</option>
+            <option value="B">B</option>
+          </select>
+        </div>
+      </div>
       <button id="breedApplyStyle" type="button" class="ghost" title="Add matching white skills to the wanted list" style="font-size:11px;padding:6px 12px;align-self:end">Apply</button>
       <span id="breedActStatus" style="font-size:10px"></span>
       <span class="muted" id="breedStyleMsg" style="font-size:11px"></span>
@@ -2538,6 +2560,7 @@ $('#breedTargetBtn').addEventListener('click', ()=>{
   openCharaPicker();
 });
 
+let BREED_APT=null;   // {aptitude, base, target} when an aptitude target is active
 async function runBreed(){
   const name=$('#target').value.trim();
   const t = _breedTargetCard ? DATA.targets.find(x=>x.card_id===_breedTargetCard) : DATA.targets.find(x=>x.name===name);
@@ -2550,9 +2573,12 @@ async function runBreed(){
   const bStyle=$('#breedStyle').value, bDist=$('#breedDistance').value;
   if(bStyle) breedBody.breed_style = bStyle;
   if(bDist) breedBody.breed_distance = bDist;
+  const bApt=$('#breedAptTarget').value;
+  if(bApt){ breedBody.apt_aptitude = bApt; breedBody.apt_grade = $('#breedAptGrade').value||'A'; }
   if($('#breedStrict').checked && ACT_RATES) breedBody.strict_act_pct = parseFloat($('#breedStrictPct').value)||60;
   const res=await (await fetch('/api/breed',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify(breedBody)})).json();
+  BREED_APT = res.apt_target || null;
   const wTag = res.weighted ? ' <span style="font-size:9px;color:gold" title="Weighted by act%">★ weighted</span>' : '';
   $('#ownRes').innerHTML=(res.own.map((c,i)=>combo(c,i)).join('')||'<span class=muted>none</span>') + (wTag && res.own.length ? `<div style="text-align:right;margin-top:4px">${wTag}</div>` : '');
   $('#rentRes').innerHTML=(res.rental.map((c,i)=>combo(c,i)).join('')||'<span class=muted>none</span>') + (wTag && res.rental.length ? `<div style="text-align:right;margin-top:4px">${wTag}</div>` : '');
@@ -2573,6 +2599,7 @@ function combo(c, idx){
     <div class="cmeta">
       <span class="mono" style="font-size:16px;font-weight:800;color:var(--green)">${c.eproc!=null?c.eproc+'%':c.obj}</span>
       <span class="mono" style="font-size:9px;color:var(--ink3);letter-spacing:1px;text-transform:uppercase">${c.eproc!=null?'avg proc'+(c.eproc_n?' ('+c.eproc_n+')':''):'score'}</span>
+      ${(BREED_APT && c.apt_result)?`<span class="mono" style="font-size:10px;color:#1a1205;background:gold;border-radius:4px;padding:1px 6px;font-weight:800" title="${esc(BREED_APT.aptitude)}: base ${BREED_APT.base} + ${c.apt_stars||0}★ red gene → ${c.apt_result}">${esc(BREED_APT.aptitude)} ${BREED_APT.base}→${c.apt_result}</span>`:''}
       <span class="mono" style="font-size:11px;color:var(--ink3);margin-left:auto">AFF <b style="color:var(--amber)">${c.affinity}</b></span>
       ${c.eblue!=null?`<span class="mono" style="font-size:11px;color:var(--ink3)">BLUE <b style="color:var(--blue)">${c.eblue}%</b></span>`:''}
       ${blue?`<span style="font-size:11px;color:var(--ink3)">·&nbsp; ${blue}</span>`:''}

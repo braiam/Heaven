@@ -1136,6 +1136,8 @@ class BreedReq(BaseModel):
     breed_distance: str | None = None   # "Sprint", "Mile", "Medium", "Long"
     strict_act_pct: float | None = None # threshold, e.g. 60.0
     use_eproc: bool = True              # True=proc-based scoring, False=legacy weighted
+    apt_aptitude: str | None = None     # target aptitude, e.g. "Sprint" (pink-spark name)
+    apt_grade: str | None = None        # target grade letter: "A" or "B"
 
 
 @app.post("/api/breed")
@@ -1151,11 +1153,29 @@ def api_breed(req: BreedReq):
             act_data = fetch_act_rates(dist_code, style_code)
             sw = compute_skill_weights(act_data, req.breed_style, req.strict_act_pct)
 
+    # Aptitude (Red Gene) target: filter to pairs that raise the trainee's base
+    # aptitude grade to the requested grade (A or B).
+    apt_label = (req.apt_aptitude or "").strip() or None
+    apt_base_grade, apt_min_grade = 1, None
+    _GRADE_N = {"S": 8, "A": 7, "B": 6, "C": 5, "D": 4, "E": 3, "F": 2, "G": 1}
+    _GRADE_L = {v: k for k, v in _GRADE_N.items()}
+    if apt_label:
+        apt_base_grade = master.card_base_aptitudes(req.target).get(apt_label) or 1
+        apt_min_grade = _GRADE_N.get((req.apt_grade or "A").upper(), 7)
+
     res = heir.optimize_breed(ds, req.target, req.want, req.w_affinity, req.w_spark,
                               top=15, allowed_ids=req.allowed_ids, skill_weights=sw,
-                              use_eproc=req.use_eproc)
+                              use_eproc=req.use_eproc,
+                              apt_label=apt_label, apt_base_grade=apt_base_grade,
+                              apt_min_grade=apt_min_grade)
     if sw:
         res["weighted"] = True
+    if apt_label:
+        res["apt_target"] = {
+            "aptitude": apt_label,
+            "base": _GRADE_L.get(apt_base_grade, "?"),
+            "target": (req.apt_grade or "A").upper(),
+        }
     return res
 
 

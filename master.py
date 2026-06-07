@@ -51,6 +51,44 @@ def chara_id_of(card_id):
     return int(card_id) // 100          # fallback: card 100101 -> chara 1001
 
 
+# Innate aptitude grades per card (proper_*), from card_rarity_data. Aptitudes
+# are constant across rarity, so the first row per card is enough. Labels match
+# the pink-spark names so they can be compared directly.
+_APT_COLS = [
+    ("proper_distance_short",       "Sprint"),
+    ("proper_distance_mile",        "Mile"),
+    ("proper_distance_middle",      "Medium"),
+    ("proper_distance_long",        "Long"),
+    ("proper_ground_turf",          "Turf"),
+    ("proper_ground_dirt",          "Dirt"),
+    ("proper_running_style_nige",   "Front Runner"),
+    ("proper_running_style_senko",  "Pace Chaser"),
+    ("proper_running_style_sashi",  "Late Surger"),
+    ("proper_running_style_oikomi", "End Closer"),
+]
+
+
+@lru_cache(maxsize=1)
+def _card_base_apt():
+    cols = ",".join(c for c, _ in _APT_COLS)
+    out = {}
+    try:
+        for row in _conn().execute(f"select card_id,{cols} from card_rarity_data"):
+            cid = row[0]
+            if cid in out:
+                continue
+            out[cid] = {label: row[i + 1] for i, (_, label) in enumerate(_APT_COLS)}
+    except Exception:
+        pass
+    return out
+
+
+def card_base_aptitudes(card_id):
+    """{aptitude_label: grade_int 1..8 (G..S)} for a card's innate aptitudes.
+    Empty dict if unknown."""
+    return _card_base_apt().get(int(card_id), {})
+
+
 def card_name(card_id):
     name = _chara_names().get(chara_id_of(card_id))
     return name or f"card {card_id}"
