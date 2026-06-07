@@ -3872,10 +3872,9 @@ async function ttProcessCaptures(){
 async function ttImportNative(){
   const r=await fetch('/api/tt/import_native',{method:'POST'}).then(r=>r.json()).catch(e=>({ok:false,error:e.message}));
   if(!r.ok){ alert('In-game import failed:\n'+(r.error||'unknown')); return; }
-  const added=r.analyze && r.analyze.added || 0;
-  if(added>0) alert(`In-game capture: decoded ${r.decoded} response(s) → added ${added} new trial(s).`);
-  else if(r.decoded>0) alert(`In-game capture: decoded ${r.decoded} response(s), but no new complete trials (need start + decide_frame_order).`);
-  else alert('No new in-game capture to import. Make sure "Team Trials" capture is ON in the overlay and you played a match.');
+  if(r.imported>0) alert(`HorseTheTrails: imported ${r.imported} new Team Trial(s) (${r.rows} uma rows).`);
+  else if(r.skipped>0) alert(`HorseTheTrails: nothing new — ${r.skipped} trial(s) already imported.`);
+  else alert('No in-game capture found. Enable "Team Trials" in the overlay (Insert) and play a match first.');
   ttLoad();
   ttLoadStadium();
 }
