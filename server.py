@@ -35,7 +35,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 
-NOTES_PATH = HERE / "notes.json"
+NOTES_PATH = safe_store.notes_path()  # per-uma notes/tags in the safe (AppData) store
 PORT = 1620
 
 app = FastAPI(title="Heaven")

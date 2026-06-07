@@ -40,6 +40,8 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from curl_cffi import requests
 
+import safe_store
+
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -625,7 +627,9 @@ def capture_auth(timeout_sec=240):
 
 def write_trace(load_res, pre_res):
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out = DATA_DIR / f"heir_capture_{ts}.jsonl"
+    # Breeding traces live in the safe (AppData) store so they survive deleting
+    # the project folder (migrated on first use).
+    out = safe_store.breeding_dir() / f"heir_capture_{ts}.jsonl"
 
     def _default(o):
         if isinstance(o, bytes):

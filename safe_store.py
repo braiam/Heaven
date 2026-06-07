@@ -13,10 +13,16 @@ What moves to the safe dir:
   - team_trials_history.jsonl   (Team Trials history)
   - stadium_observations.jsonl  (Stadium / Track & Condition observations)
   - htt/native/*.json           (raw in-game captures from the MOD)
+  - breeding/heir_capture_*.jsonl  (your umas + friends' borrowable parents)
+  - notes.json                  (your per-uma notes / tags)
+
+Breeding traces go into a dedicated `breeding/` subfolder (NOT the data root):
+heir's find_trace() just picks the newest *.jsonl with no name filter, so mixing
+them with team_trials_history.jsonl would make it grab the wrong file.
 
 What STAYS in the project folder (read-only seed / caches / per-account):
-  - community_seed.jsonl, icons/, race_icons/, heir_capture_*.jsonl,
-    auth_config.json, udid.txt, skill_export.json, images/ ...
+  - community_seed.jsonl, icons/, race_icons/, skill_export.json,
+    auth_config.json, udid.txt, images/ ...
 
 On non-Windows (or if LOCALAPPDATA is unset) the safe dir resolves back to the
 project `data/` folder, so behaviour is unchanged there.
@@ -90,6 +96,39 @@ def _merge_tree(old: Path, new: Path) -> None:
                 pass
 
 
+def _move_glob(src_dir: Path, pattern: str, dest_dir: Path) -> None:
+    """Move every file in src_dir matching `pattern` into dest_dir (skip dups)."""
+    if not src_dir.exists():
+        return
+    for p in sorted(src_dir.glob(pattern)):
+        if not p.is_file():
+            continue
+        dest = dest_dir / p.name
+        if not dest.exists():
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                shutil.move(str(p), str(dest))
+            except OSError:
+                pass
+
+
+def _move_file(old: Path, new: Path) -> None:
+    """Move a single file old → new. If new exists, retire old as .migrated."""
+    if not old.exists():
+        return
+    if not new.exists():
+        new.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            shutil.move(str(old), str(new))
+        except OSError:
+            pass
+    else:
+        try:
+            old.rename(old.with_name(old.name + ".migrated"))
+        except OSError:
+            pass
+
+
 def ensure_migrated() -> Path:
     """Idempotent: create the safe dir and move any legacy project-folder data
     into it. Returns the safe data dir. Safe to call from many modules."""
@@ -105,6 +144,10 @@ def ensure_migrated() -> Path:
             _merge_jsonl(PROJECT_DATA / name, SAFE_DATA / name)
         for sub in _SAFE_TREES:
             _merge_tree(PROJECT_DATA / sub, SAFE_DATA / sub)
+        # breeding traces (your umas + friends) → dedicated breeding/ subfolder
+        _move_glob(PROJECT_DATA, "heir_capture_*.jsonl", SAFE_DATA / "breeding")
+        # per-uma notes / tags (lives in the project ROOT, not data/)
+        _move_file(HERE / "notes.json", SAFE_DATA / "notes.json")
     except Exception:
         # never let a migration hiccup block startup; worst case we fall back
         # to whatever path the caller uses.
@@ -123,3 +166,14 @@ def stadium_path() -> Path:
 
 def native_dir() -> Path:
     return ensure_migrated() / "htt" / "native"
+
+
+def breeding_dir() -> Path:
+    """Folder holding heir_capture_*.jsonl (your umas + friends). Created on demand."""
+    d = ensure_migrated() / "breeding"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def notes_path() -> Path:
+    return ensure_migrated() / "notes.json"

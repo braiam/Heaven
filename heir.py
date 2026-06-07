@@ -30,6 +30,7 @@ sys.path.insert(0, str(HERE))
 
 import master
 import affinity
+import safe_store
 
 FACTOR_MAP_PATH = HERE / "factor_map.json"
 DATA_DIR = HERE / "data"
@@ -51,10 +52,25 @@ def _eden_trace_dirs():
     return []
 
 
+def _trace_dirs():
+    """Where breeding traces (your umas + friends) live: the safe AppData
+    breeding/ folder. We deliberately do NOT scan the project data/ folder —
+    it holds other *.jsonl (e.g. player_state.jsonl) and find_trace() picks the
+    newest *.jsonl with no name filter, so it would grab the wrong file. The
+    breeding/ folder only ever contains heir_capture_*.jsonl. Migration on first
+    use moves any legacy project-folder traces here."""
+    dirs = []
+    try:
+        dirs.append(safe_store.breeding_dir())
+    except Exception:
+        dirs.append(DATA_DIR)  # fallback only if safe store is unavailable
+    return dirs + _eden_trace_dirs()
+
+
 def find_trace(arg):
     if arg:
         return Path(arg)
-    all_dirs = [DATA_DIR] + _eden_trace_dirs()
+    all_dirs = _trace_dirs()
     cands = []
     for d in all_dirs:
         if d and d.exists():
@@ -176,7 +192,7 @@ def load_raw_trained_chara(path=None):
     Used to re-export the user's umas into formats other tools accept (UmaExtractor
     data.json, hakuraku veteran import, etc).
     Scans Heir data/ + Eden trace dirs and picks the newest one with mine data."""
-    all_dirs = [DATA_DIR] + _eden_trace_dirs()
+    all_dirs = _trace_dirs()
     all_traces = []
     for d in all_dirs:
         if d and d.exists():
@@ -216,7 +232,7 @@ def load_dataset_from_trace(path, fmap):
     """Load mine+rentable from path, falling back to other traces for missing halves.
     Scans Heir data/ and Eden trace dirs so a fresh capture (rentable only) can
     complement an Eden trace that has mine, and vice-versa."""
-    all_dirs = [DATA_DIR] + _eden_trace_dirs()
+    all_dirs = _trace_dirs()
     all_traces = []
     for d in all_dirs:
         if d and d.exists():
