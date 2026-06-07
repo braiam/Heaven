@@ -2263,8 +2263,9 @@ function updateTray(){
     if(u){ el.src=`/img/${u.card_id}`; el.classList.remove('hide'); el.classList.add(cls); el.onerror=()=>el.classList.add('hide'); }
     else { el.classList.add('hide'); }
   };
-  $('#trayP1').innerHTML=`<span class="tray-label">P1</span><img class="tray-port p1-border hide" id="trayP1Port" src=""><i>${nm(SELP.p1)}</i>`;
-  $('#trayP2').innerHTML=`<span class="tray-label">P2</span><img class="tray-port p2-border hide" id="trayP2Port" src=""><i>${nm(SELP.p2)}</i>`;
+  const trayX=(slot)=>`<span title="Remove ${slot.toUpperCase()}" onclick="event.stopPropagation();SELP.${slot}=null;updateTray()" style="margin-left:7px;cursor:pointer;color:var(--ink3);font-weight:800;font-size:13px;line-height:1">&times;</span>`;
+  $('#trayP1').innerHTML=`<span class="tray-label">P1</span><img class="tray-port p1-border hide" id="trayP1Port" src=""><i>${nm(SELP.p1)}</i>${SELP.p1?trayX('p1'):''}`;
+  $('#trayP2').innerHTML=`<span class="tray-label">P2</span><img class="tray-port p2-border hide" id="trayP2Port" src=""><i>${nm(SELP.p2)}</i>${SELP.p2?trayX('p2'):''}`;
   showPort($('#trayP1Port'), SELP.p1, 'p1-border');
   showPort($('#trayP2Port'), SELP.p2, 'p2-border');
   $('#tray').classList.toggle('hide',!(SELP.p1||SELP.p2));
