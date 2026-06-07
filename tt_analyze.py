@@ -18,7 +18,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import master
-import race_scenario
+import tt_scenario
 import player_state
 import stadium_tracker
 
@@ -70,9 +70,9 @@ def analyze_team_trial(payload_start: dict, payload_dfo: dict, trial_id: str = "
         scen = race.get("race_scenario")
         if not scen:
             continue
-        parsed = race_scenario.parse_race_scenario(scen)
-        per_horse_activations = race_scenario.skill_activations_per_horse(parsed)
-        per_horse_scores = race_scenario.scores_per_horse(parsed)
+        parsed = tt_scenario.parse(scen)
+        per_horse_activations = tt_scenario.activations_per_horse(parsed)
+        per_horse_scores = tt_scenario.scores_per_horse(parsed)
         per_horse_results = parsed["horse_results"]
 
         # Per-race team multiplier (kept for backward compat / debugging).

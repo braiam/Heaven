@@ -19,6 +19,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+import agenda
 import heir
 import master
 import fetch as fetch_mod
@@ -44,9 +45,32 @@ STATE = {"ds": None, "fmap": None, "skills": None, "source": None}
 DATA_DIR = HERE / "data"
 HISTORY_PATH = DATA_DIR / "team_trials_history.jsonl"
 
+
+def _publish_data_dir() -> None:
+    """Tell the in-game Heaven MOD where this dashboard's data folder is, so its
+    Team Trials capture writes here (next to the user's existing history) instead
+    of guessing. The MOD reads %LOCALAPPDATA%\\Heaven\\datadir.txt; if it's
+    missing it falls back to %LOCALAPPDATA%\\Heaven\\data. Portable across PCs."""
+    try:
+        base = os.environ.get("LOCALAPPDATA")
+        if not base:
+            return
+        marker_dir = Path(base) / "Heaven"
+        marker_dir.mkdir(parents=True, exist_ok=True)
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        (marker_dir / "datadir.txt").write_text(str(DATA_DIR), encoding="utf-8")
+    except Exception:
+        pass  # best-effort; never block startup over this
+
+
+_publish_data_dir()
+
 # ── Icon cache ────────────────────────────────────────────────────────────
 ICON_CACHE = HERE / "data" / "icons"
 ICON_CACHE.mkdir(parents=True, exist_ok=True)
+
+RACE_ICON_CACHE = HERE / "data" / "race_icons"
+RACE_ICON_CACHE.mkdir(parents=True, exist_ok=True)
 
 
 def icon_urls(card_id: int) -> list[str]:
@@ -851,6 +875,30 @@ def icon(card_id: int):
     return Response(status_code=404)
 
 
+@app.get("/race_icon/{tid}")
+def race_icon(tid: int):
+    """Serve a cached race banner. Downloads from uma.guide on first request,
+    then serves locally (so the agenda works offline after first view)."""
+    cache_file = RACE_ICON_CACHE / f"{tid}.webp"
+    miss_file = RACE_ICON_CACHE / f"{tid}.miss"
+    if cache_file.exists():
+        return FileResponse(str(cache_file), media_type="image/webp")
+    if miss_file.exists():
+        return Response(status_code=404)
+    url = f"https://uma.guide/icon/race/thum_race_rt_000_{tid}_00.webp"
+    try:
+        req = _urlreq.Request(url, headers={"User-Agent": "Mozilla/5.0 Heaven-Dashboard"})
+        with _urlreq.urlopen(req, timeout=6) as r:
+            data = r.read()
+        if data and len(data) > 200:
+            cache_file.write_bytes(data)
+            return FileResponse(str(cache_file), media_type="image/webp")
+    except Exception:
+        pass
+    miss_file.touch()
+    return Response(status_code=404)
+
+
 @app.get("/api/data")
 def api_data():
     ds = ensure_dataset()
@@ -872,6 +920,15 @@ def api_data():
         "targets": target_list,
         "source": STATE["source"],
     }
+
+
+@app.get("/api/agenda")
+def api_agenda():
+    """Career race calendar + Trackblazer epithets, built from local master.mdb."""
+    try:
+        return agenda.build_agenda()
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 class TargetAffinityReq(BaseModel):
@@ -1801,16 +1858,12 @@ def api_process():
 
 @app.post("/api/tt/import_native")
 def api_tt_import_native():
-    """Decode the in-game WinHTTP capture (native_capture.jsonl, produced by the
-    overlay's Team Trials tap) into raw_full.jsonl, then run the analyzer. No
-    proxy or certificate — the data is captured inside the game process."""
-    import native_import
-    dec = native_import.import_native()
-    if not dec.get("ok"):
-        return dec
-    analyze = tt_capture.run_analyzer()
-    return {"ok": True, "decoded": dec.get("decoded", 0),
-            "lines": dec.get("lines", 0), "analyze": analyze}
+    """Import Team Trials captured in-process by the HorseTheTrails native module
+    (data/htt/native/<trial_id>.json, our own compact schema) into the history,
+    with dedup. No proxy or certificate — the data is read straight from the
+    game's managed objects and the race_scenario blobs are parsed locally."""
+    import htt_import
+    return htt_import.import_dir()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1863,8 +1916,7 @@ def api_stadium_csv():
 #  Bundles the two accumulating observation datasets — Team Trials history
 #  (skills + activation %) and Stadium observations — into one shareable file.
 #  Import APPENDS with dedup: existing data is never replaced or lost, new rows
-#  are summed in. A rolling backup is taken before every import so it can be
-#  undone. Build a long-lived community database across many players.
+#  are summed in. Build a long-lived community database across many players.
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _read_jsonl_list(path) -> list[dict]:
