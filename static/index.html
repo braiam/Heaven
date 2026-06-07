@@ -1175,6 +1175,11 @@
       <button class="ghost" id="clearF" style="font-size:11px;padding:3px 10px" onclick="event.stopPropagation()">Clear all</button>
     </div>
     <div class="inv-factors-body" id="factorsBody">
+      <div style="font-size:10.5px;color:var(--ink3);line-height:1.75;padding:2px 2px 9px;border-bottom:1px solid var(--line);margin-bottom:10px">
+        <div><b style="color:var(--blue)">Blue</b> = stats · <b style="color:var(--magenta)">Pink</b> = aptitude · <b style="color:var(--green)">Green</b> = unique · <b style="color:var(--white-s)">White</b> = skills/races</div>
+        <div><b>Required</b>: only show umas that have it · <b>Preferred</b>: doesn't filter, ranks by how many you matched · <b>Lineage</b>: weights by tree depth (1.1<sup>n</sup>)</div>
+        <div>Each filter has a <b>★ range</b>. <b style="color:var(--amber)">Active filters set the order</b> — rows sort by total ★ of each filter (in the order you add them) and that beats the Sort dropdown.</div>
+      </div>
       <div id="fcats"></div>
     </div>
     <datalist id="whitelist"></datalist>
@@ -2080,7 +2085,11 @@ function buildFitScore(u){
 function _updateBuildMsg(){
   const s=$('#invStyle').value, d=$('#invDistance').value;
   const el=$('#invBuildMsg');
-  if(s||d){ el.textContent=`sorted by: ${[s,d].filter(Boolean).join(' + ')} fit`; el.style.color='var(--ok)'; }
+  if(!el) return;
+  const hasFilters = ['blue','pink','green','whiteReq','whitePref','lineage']
+    .some(k=>(FILTERS[k]||[]).some(f=>f.name));
+  if(hasFilters){ el.textContent='sorted by active factor filters (★)'; el.style.color='var(--amber)'; }
+  else if(s||d){ el.textContent=`sorted by: ${[s,d].filter(Boolean).join(' + ')} fit`; el.style.color='var(--ok)'; }
   else { el.textContent=''; }
 }
 function renderInv(){
@@ -2142,10 +2151,12 @@ function renderInv(){
   // Sort dropdown ALWAYS wins. Filter-derived sort kicks in only when the
   // dropdown is on its default (affinity) AND no target is picked (target
   // sort also only applies on default sort).
-  if(TARGET_CARD && sortBy==='affinity'){
-    rows.sort((a,b)=>targetSort(a,b)||(b._lin-a._lin)||(b._pref-a._pref)||base(a,b));
-  } else if(filterOrder.length && sortBy==='affinity'){
+  if(filterOrder.length){
+    // Active factor filters drive the order (total ★, in the order added);
+    // this beats the Sort dropdown, which becomes the final tiebreaker.
     rows.sort((a,b)=>filterSort(a,b)||(b._lin-a._lin)||(b._pref-a._pref)||base(a,b));
+  } else if(TARGET_CARD && sortBy==='affinity'){
+    rows.sort((a,b)=>targetSort(a,b)||(b._lin-a._lin)||(b._pref-a._pref)||base(a,b));
   } else {
     rows.sort((a,b)=>base(a,b)||(b._lin-a._lin)||(b._pref-a._pref));
   }
@@ -2165,6 +2176,7 @@ function renderInv(){
   }
   _bindInvList();
   updateFactorsCount();
+  _updateBuildMsg();
 }
 let _invRows=[], _invShown=0;
 function _showMoreInv(){
