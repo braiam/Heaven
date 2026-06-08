@@ -1078,7 +1078,7 @@
 <!-- ===== INVENTORY ===== -->
 <section id="inv">
   <div class="viewhead">
-    <h1><span class="tag">VIEW 01</span>Inventory</h1>
+    <h1>Inventory</h1>
   </div>
 
   <!-- BUILD-FILTER CONSOLE -->
@@ -1191,7 +1191,7 @@
 <!-- ===== BREED ===== -->
 <section id="breed" class="hide">
   <div class="viewhead">
-    <h1><span class="tag">VIEW 02</span>Breed</h1>
+    <h1>Breed</h1>
   </div>
   <!-- Target & weights -->
   <div class="card breed-top">
@@ -1267,6 +1267,7 @@
     <div class="breed-want-row">
       <input id="wantIn" list="sparklist" placeholder="add wanted spark and press Enter (e.g. Speed, Long Distance, Tail Held High...)" class="breed-input" style="flex:1">
       <datalist id="sparklist"></datalist>
+      <button id="wantClear" type="button" class="ghost" style="font-size:11px;padding:7px 14px">Clear</button>
     </div>
     <div id="wantChips" style="margin-top:6px"></div>
 
@@ -1470,8 +1471,8 @@ const TYPE_LABEL={blue:'Blue (stats)',pink:'Pink (aptitude)',green:'Green (uniqu
 async function load(){
   const [dataRes] = await Promise.all([fetch('/api/data'), loadRankIcons()]);
   DATA=await dataRes.json();
-  $('#src').textContent=(DATA.source?'source: '+DATA.source.split(/[\\/]/).pop():'no data')
-      +`  |  ${DATA.mine.length} yours, ${DATA.rentable.length} borrowable`;
+  $('#src').textContent=`${DATA.mine.length} umas`
+      +(DATA.rentable.length?` · ${DATA.rentable.length} borrowable`:'');
   const stats=['Speed','Stamina','Power','Guts','Wit'];
   const all=[...stats,...DATA.skills.pink,...DATA.skills.green,...DATA.skills.white];
   $('#sparklist').innerHTML=all.map(s=>`<option value="${esc(s)}">`).join('');
@@ -2435,6 +2436,21 @@ function renderWant(){
 }
 function _addWant(){const v=$('#wantIn').value.trim();if(v&&!WANT.includes(v)){WANT.push(v);renderWant();}$('#wantIn').value='';}
 $('#wantIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();_addWant();}});
+$('#wantClear').onclick=()=>{
+  // wanted sparks
+  WANT.length=0; renderWant(); $('#wantIn').value='';
+  // target
+  _breedTargetCard=null; $('#target').value='';
+  $('#breedTargetPortrait').classList.add('hide');
+  $('#breedTargetName').textContent='pick a target uma...';
+  $('#breedTargetName').classList.remove('picked');
+  // style / distance / aptitude selectors back to placeholder
+  ['breedStyle','breedDistance','breedAptTarget','breedAptGrade'].forEach(id=>{const el=$('#'+id); if(el) el.selectedIndex=0;});
+  BREED_APT=null;
+  // messages + results
+  $('#breedStyleMsg').textContent=''; $('#breedActStatus').textContent='';
+  $('#ownRes').innerHTML=''; $('#rentRes').innerHTML='';
+};
 $('#wantIn').addEventListener('change',_addWant);
 
 // ---- strict mode checkbox ----
@@ -2784,15 +2800,15 @@ function openPairDetail(d){
   const hasOdds = d.spark_odds && (d.spark_odds.full_run || d.spark_odds.first_only);
   const oddsPanel = hasOdds ? `
     <div class="seclab" style="display:flex;justify-content:space-between;align-items:center">
-      <span>Expected Spark Proc Odds</span>
+      <span>Expected Inspiration Proc Odds</span>
       <div class="odds-toggle">
         <button class="odds-btn active" data-mode="full_run">Full run (2 events)</button>
-        <button class="odds-btn ghost" data-mode="first_only">First inheritance only</button>
+        <button class="odds-btn ghost" data-mode="first_only">First inspiration only</button>
       </div>
     </div>
     <div class="odds-grid" id="oddsGrid">${sparkOddsGrid(d.spark_odds, 'full_run')}</div>
     <p class="muted" style="font-size:9px;margin-top:4px">
-      P(&ge;1 proc) per spark. <b>Full run</b> = 2 events. Stars: <span style="color:var(--accent)">P1</span> / <span style="color:var(--pink)">P2</span>. Click any spark to see which tree entity contributes what.
+      P(&ge;1 proc) during the <b>inspiration</b> events of the run (not the factor inherited at graduation). <b>Full run</b> = 2 events. Stars: <span style="color:var(--accent)">P1</span> / <span style="color:var(--pink)">P2</span>. Click any spark to see which tree entity contributes what.
     </p>` : '';
 
   const treeHtml = lineageTree(d);
