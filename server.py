@@ -28,6 +28,7 @@ import skill_planner
 import player_state
 import stadium_tracker
 import tt_capture
+import race_skills
 
 from fastapi import FastAPI, Query, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -1849,12 +1850,47 @@ def api_skill_planner_skills():
 
 
 @app.get("/api/skill_planner/lookup")
-def api_skill_planner_lookup(q: str = ""):
-    """Returns overall + per-uma activation stats for a single skill."""
+def api_skill_planner_lookup(q: str = "", style: str = "", dist: str = ""):
+    """Returns overall + per-uma activation stats for a single skill.
+    Optional style (NIGE/SENKO/SASHI/OIKOMI) + dist (sprint/mile/medium/long/dirt)
+    restrict the data to that running style / distance bucket."""
     q = q.strip()
     if not q:
         return JSONResponse({"error": "missing q"}, status_code=400)
-    return skill_planner.skill_lookup(q)
+    return skill_planner.skill_lookup(q, style=style.strip() or None, dist=dist.strip() or None)
+
+
+@app.get("/api/skill_data/stats")
+def api_skill_data_stats():
+    """Row count + how many community files are merged into the pool."""
+    rows = race_skills.load_rows()
+    files = len(list(race_skills.COMMUNITY_DIR.glob("*.jsonl"))) if race_skills.COMMUNITY_DIR.exists() else 0
+    return {"rows": len(rows), "community_files": files}
+
+
+@app.post("/api/skill_data/import_races")
+def api_skill_data_import_races():
+    """(Re)scan heaven-races and merge any new local races into the pool."""
+    return race_skills.import_races(
+        types=("Career", "Champions meeting", "Room match", "Other", "Practice room"))
+
+
+@app.get("/api/skill_data/export")
+def api_skill_data_export():
+    """Download your collected race skill rows (jsonl) to share with others."""
+    p = race_skills.ROWS_PATH
+    data = p.read_bytes() if p.exists() else b""
+    return Response(content=data, media_type="application/x-ndjson",
+                    headers={"Content-Disposition": 'attachment; filename="heaven_skill_data.jsonl"'})
+
+
+@app.post("/api/skill_data/import")
+async def api_skill_data_import(file: UploadFile = File(...)):
+    """Merge someone else's exported skill data. Deduped by (race_id, chara_id)
+    so the same race/uma is never counted twice."""
+    raw = await file.read()
+    label = (file.filename or "shared").rsplit(".", 1)[0]
+    return race_skills.import_community_file(raw, label=label)
 
 
 @app.get("/api/skill_planner/act_rates")

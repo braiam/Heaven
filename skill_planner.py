@@ -67,6 +67,46 @@ def load_history() -> list[dict]:
     return out
 
 
+# ── Combined rows + style/distance filtering ────────────────────────────────
+# Team Trials history (distance_type 1-5) + horseACT race dumps (distance_cat
+# string). running_style is the same NIGE/SENKO/SASHI/OIKOMI in both.
+_TT_DIST = {1: "sprint", 2: "mile", 3: "medium", 4: "long", 5: "dirt"}
+
+
+def combined_rows() -> list[dict]:
+    """Team Trials history + horseACT race-dump rows, as one list."""
+    rows = load_history()
+    try:
+        import race_skills
+        rows = rows + race_skills.load_rows()
+    except Exception:
+        pass
+    return rows
+
+
+def _row_dist(row: dict):
+    if row.get("distance_cat"):
+        return row["distance_cat"]
+    return _TT_DIST.get(row.get("distance_type"))
+
+
+def _filter_rows(rows: list[dict], style: str | None, dist: str | None) -> list[dict]:
+    """Keep rows matching the running style and/or distance bucket. Empty
+    filters → all rows (so 0 or 1 filter uses just that slice of the data)."""
+    if not style and not dist:
+        return rows
+    style = style.upper() if style else None
+    dist = dist.lower() if dist else None
+    out = []
+    for r in rows:
+        if style and (r.get("running_style") or "").upper() != style:
+            continue
+        if dist and _row_dist(r) != dist:
+            continue
+        out.append(r)
+    return out
+
+
 # ── Aggregation ─────────────────────────────────────────────────────────────
 def _aggregate(rows: list[dict], group_key: callable) -> dict:
     """Aggregate skill stats grouping by whatever group_key returns.
@@ -243,12 +283,17 @@ def plan(chara_id: int, distance_type: int, running_style: str,
     }
 
 
-def skill_lookup(skill_query: str | int, rows: list[dict] | None = None) -> dict:
+def skill_lookup(skill_query: str | int, rows: list[dict] | None = None,
+                 style: str | None = None, dist: str | None = None) -> dict:
     """Look up a single skill by name (case-insensitive substring) or skill_id.
     Returns overall activation rate + per-uma breakdown across all rows.
+    Optional `style` (NIGE/SENKO/SASHI/OIKOMI) and `dist`
+    (sprint/mile/medium/long/dirt) restrict the data to that running style
+    and/or distance bucket; no filter = all data.
     """
     if rows is None:
-        rows = load_history()
+        rows = combined_rows()
+    rows = _filter_rows(rows, style, dist)
 
     all_names = master._skill_names()
 
@@ -361,7 +406,7 @@ def all_skill_names(rows: list[dict] | None = None) -> list[dict]:
     """Returns all skill_ids appearing in history with their names for the
     autocomplete dropdown."""
     if rows is None:
-        rows = load_history()
+        rows = combined_rows()
     names = master._skill_names()
     seen: set[int] = set()
     for r in rows:

@@ -1384,12 +1384,31 @@
   <div class="tt-card">
     <div class="tt-card-header">
       <h2 class="tt-card-title">Skill Lookup</h2>
+      <div class="tt-card-tools" style="display:flex;gap:8px;align-items:center;margin-left:auto">
+        <span id="sl-pool" class="tt-status-line"></span>
+        <button class="tt-btn" onclick="slSyncRaces()" title="Scan heaven-races for new races and add them to the pool">Sync races</button>
+        <button class="tt-btn" onclick="document.getElementById('sl-import-file').click()" title="Merge a skill-data file someone shared (deduped, never double-counts)">Import data</button>
+        <input type="file" id="sl-import-file" accept=".jsonl" style="display:none" onchange="slImportData(this)">
+        <a class="tt-btn" href="/api/skill_data/export" download title="Download your skill data to share">Export data</a>
+      </div>
     </div>
     <div class="tt-form-row">
       <div class="tt-form-field" style="flex:2">
         <div class="tt-field-label">Skill name</div>
         <input id="tt-sl-input" list="tt-sl-list" class="tt-input" placeholder="Type a skill name (e.g. Fast-Paced, Sympathy, Front Runner Savvy)" onkeydown="if(event.key==='Enter')ttRunSkillLookup()">
         <datalist id="tt-sl-list"></datalist>
+      </div>
+      <div class="tt-form-field">
+        <div class="tt-field-label">Distance</div>
+        <select id="tt-sl-dist" class="tt-select" onchange="ttRunSkillLookup()">
+          <option value="">All</option><option value="sprint">Sprint</option><option value="mile">Mile</option><option value="medium">Medium</option><option value="long">Long</option><option value="dirt">Dirt</option>
+        </select>
+      </div>
+      <div class="tt-form-field">
+        <div class="tt-field-label">Style (aptitude)</div>
+        <select id="tt-sl-style" class="tt-select" onchange="ttRunSkillLookup()">
+          <option value="">All</option><option value="NIGE">Front Runner</option><option value="SENKO">Pace Chaser</option><option value="SASHI">Late Surger</option><option value="OIKOMI">End Closer</option>
+        </select>
       </div>
       <button class="tt-btn-primary" onclick="ttRunSkillLookup()">LOOK UP</button>
       <span id="tt-sl-status" class="tt-status-line"></span>
@@ -2394,16 +2413,16 @@ function showTab(name){
   const panels = ['inv','breed','tt-overview','tt-planner','tt-lookup','tt-stadium'];
   panels.forEach(p=>{ const el=$('#'+p); if(el) el.classList.toggle('hide',p!==name); });
   if(name==='tt-overview' && !TT_LOADED){
-    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
+    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList(); slLoadPoolStats();
   }
   if(name==='tt-planner' && !TT_LOADED){
-    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
+    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList(); slLoadPoolStats();
   }
   if(name==='tt-lookup' && !TT_LOADED){
-    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
+    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList(); slLoadPoolStats();
   }
   if(name==='tt-stadium' && !TT_LOADED){
-    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList();
+    TT_LOADED=true; ttLoad(); ttLoadStadium(); ttLoadPlannerOptions(); ttLoadSkillList(); slLoadPoolStats();
   }
 }
 function refreshTagSelects(){
@@ -3600,6 +3619,30 @@ async function ttLoadSkillList(){
     $('#tt-sl-list').innerHTML=r.map(s=>`<option value="${s.name}">`).join('');
   }catch(e){}
 }
+async function slLoadPoolStats(){
+  try{
+    const s=await fetch('/api/skill_data/stats').then(r=>r.json());
+    const el=$('#sl-pool');
+    if(el) el.textContent=`${(s.rows||0).toLocaleString()} data points`+(s.community_files?` · ${s.community_files} shared`:'');
+  }catch(e){}
+}
+async function slSyncRaces(){
+  const el=$('#sl-pool'); if(el) el.textContent='syncing races…';
+  try{ const r=await fetch('/api/skill_data/import_races',{method:'POST'}).then(r=>r.json());
+    await slLoadPoolStats();
+    if(el&&r.processed!=null) el.textContent+=` (scanned ${r.processed})`;
+  }catch(e){ if(el) el.textContent='sync failed'; }
+}
+async function slImportData(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const el=$('#sl-pool'); if(el) el.textContent='importing…';
+  const fd=new FormData(); fd.append('file', f);
+  try{
+    const r=await fetch('/api/skill_data/import',{method:'POST',body:fd}).then(r=>r.json());
+    input.value=''; await slLoadPoolStats();
+    alert(r.ok?`Merged: +${r.new_added} new data points (file had ${r.rows_in_file}). Duplicates skipped.`:('Import failed: '+(r.error||'?')));
+  }catch(e){ alert('Import failed'); }
+}
 
 function ttSlPctColor(pct){
   if(pct==null) return 'var(--mut)';
@@ -3614,7 +3657,9 @@ async function ttRunSkillLookup(){
   const status=$('#tt-sl-status'), result=$('#tt-sl-result');
   if(!q){status.textContent='Type a skill name first.';return;}
   status.textContent='Loading…';
-  const r=await fetch(`/api/skill_planner/lookup?q=${encodeURIComponent(q)}`).then(r=>r.json());
+  const dist=$('#tt-sl-dist').value, style=$('#tt-sl-style').value;
+  const qs=`q=${encodeURIComponent(q)}`+(dist?`&dist=${dist}`:'')+(style?`&style=${style}`:'');
+  const r=await fetch(`/api/skill_planner/lookup?${qs}`).then(r=>r.json());
   status.textContent='';
   if(r.error==='ambiguous'){
     result.innerHTML=`<div style="color:var(--mut);font-size:13px;margin-bottom:8px">Multiple matches — pick one:</div>`+
