@@ -73,14 +73,35 @@ def load_history() -> list[dict]:
 _TT_DIST = {1: "sprint", 2: "mile", 3: "medium", 4: "long", 5: "dirt"}
 
 
+_ROWS_CACHE: dict = {"key": None, "rows": None}
+
+
+def _mtime(p) -> float:
+    try:
+        return Path(p).stat().st_mtime
+    except OSError:
+        return 0.0
+
+
 def combined_rows() -> list[dict]:
-    """Team Trials history + horseACT race-dump rows, as one list."""
+    """Team Trials history + horseACT race-dump rows, as one list.
+    Cached and invalidated by the source files' mtimes, so repeated lookups /
+    autocomplete don't re-read + re-parse 16k+ rows from disk every call."""
+    import race_skills
+    comm = ()
+    if race_skills.COMMUNITY_DIR.exists():
+        comm = tuple(sorted((p.name, _mtime(p))
+                            for p in race_skills.COMMUNITY_DIR.glob("*.jsonl")))
+    key = (_mtime(HISTORY_PATH), _mtime(race_skills.ROWS_PATH), comm)
+    if _ROWS_CACHE["key"] == key and _ROWS_CACHE["rows"] is not None:
+        return _ROWS_CACHE["rows"]
     rows = load_history()
     try:
-        import race_skills
         rows = rows + race_skills.load_rows()
     except Exception:
         pass
+    _ROWS_CACHE["key"] = key
+    _ROWS_CACHE["rows"] = rows
     return rows
 
 
@@ -357,7 +378,7 @@ def skill_lookup(skill_query: str | int, rows: list[dict] | None = None,
             continue
         activated = bool(sid_group & set(row.get("activated_skills") or []))
         cid = row.get("chara_id")
-        cname = row.get("chara_name") or chara_name_by_card_id(cid) if cid else "?"
+        cname = row.get("chara_name") or (chara_name_by_card_id(cid) if cid else "?")
         if cid not in per_uma:
             per_uma[cid] = {"chara_id": cid, "chara_name": cname, "owned": 0, "activated": 0}
         per_uma[cid]["owned"] += 1
@@ -389,7 +410,33 @@ def skill_lookup(skill_query: str | int, rows: list[dict] | None = None,
             "activated":      s["activated"],
             "activation_pct": round(pct, 1),
         })
-    umas.sort(key=lambda u: (-u["activation_pct"], -u["owned"]))
+    # Sort by MOST races first (most reliable on top), act% as tiebreaker.
+    umas.sort(key=lambda u: (-u["owned"], -u["activation_pct"]))
+
+    # Breakdown by distance + by running style over the rows in scope.
+    _STYLE_LABEL = {"NIGE": "Front Runner", "SENKO": "Pace Chaser",
+                    "SASHI": "Late Surger", "OIKOMI": "End Closer"}
+
+    def _bucket(keyfn):
+        d: dict = {}
+        for row in rows:
+            if not (sid_group & set(row.get("owned_skills") or [])):
+                continue
+            k = keyfn(row)
+            if not k:
+                continue
+            b = d.setdefault(k, [0, 0])
+            b[0] += 1
+            if sid_group & set(row.get("activated_skills") or []):
+                b[1] += 1
+        return [{"key": k, "owned": o, "activated": a,
+                 "pct": round(a / o * 100, 1) if o else 0} for k, (o, a) in d.items()]
+
+    _DORD = {"sprint": 0, "mile": 1, "medium": 2, "long": 3, "dirt": 4}
+    by_distance = sorted(_bucket(_row_dist), key=lambda x: _DORD.get(x["key"], 9))
+    by_style = sorted(_bucket(lambda r: _STYLE_LABEL.get(r.get("running_style"),
+                                                         r.get("running_style"))),
+                      key=lambda x: -x["owned"])
 
     return {
         "skill_id":          primary_sid,
@@ -399,6 +446,8 @@ def skill_lookup(skill_query: str | int, rows: list[dict] | None = None,
         "overall_activated": overall_act,
         "overall_pct":       round((overall_act / overall_owned) * 100, 1),
         "umas":              umas,
+        "by_distance":       by_distance,
+        "by_style":          by_style,
     }
 
 

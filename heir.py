@@ -91,7 +91,9 @@ def decode_sparks(factor_info_array, fmap):
         cat = info.get("category", "other")
         out.append({
             "id": fid, "name": info.get("name", f"Unknown({fid})"),
-            "stars": info.get("stars", (fid or 0) % 100),
+            # Unknown factor (not in factor_map) → 0 stars, NOT fid%100 (which
+            # produced absurd star counts that inflated stats/proc/red-gene).
+            "stars": info.get("stars", 0),
             "category": cat, "type": SPARK_TYPE.get(cat, "other"),
         })
     return out
@@ -622,7 +624,6 @@ def optimize_breed(ds, target, want, w_affinity=2.0, w_spark=1.0,
                 "eblue": ep["eblue_avg"],           # avg blue stat proc %
                 "eblue_n": ep["eblue_n"],
                 "affinity": ep["affinity_total"],
-                "shared_g1": 0,
                 "affinity_detail": ep["affinity_detail"],
                 "spark": ep["eproc_avg"],
                 "blue": blue,
@@ -649,7 +650,6 @@ def optimize_breed(ds, target, want, w_affinity=2.0, w_spark=1.0,
             blue = {k: round(b1[k] + b2[k], 1) for k in STAT_NAMES.values() if b1[k] + b2[k]}
             return {
                 "obj": round(obj, 1), "affinity": comp["total"],
-                "shared_g1": 0,
                 "affinity_detail": comp, "spark": round(spark, 1), "blue": blue,
                 "p1": chara_brief(p1, want_lower), "p2": chara_brief(p2, want_lower),
             }
@@ -756,13 +756,24 @@ def cmd_breed(args):
     print(f"[*] Pool: {len(mine)} tuyas, {len(rentable)} prestables")
     print(f"[*] Pesos: afinidad x{args.w_affinity}, spark x{args.w_spark}\n")
 
-    res = optimize_breed(ds, target, want, args.w_affinity, args.w_spark, top=8)
+    apt_label = (getattr(args, "apt", "") or "").strip() or None
+    apt_base_grade, apt_min_grade = 1, None
+    if apt_label:
+        apt_base_grade = master.card_base_aptitudes(target).get(apt_label) or 1
+        _gn = {v: k for k, v in APT_GRADE.items()}
+        apt_min_grade = _gn.get((getattr(args, "apt_grade", "A") or "A").upper(), 7)
+        print(f"[*] Aptitud: alcanzar {apt_label} >= {getattr(args,'apt_grade','A')} "
+              f"(base {APT_GRADE.get(apt_base_grade,'?')})")
+    res = optimize_breed(ds, target, want, args.w_affinity, args.w_spark, top=8,
+                         use_eproc=not getattr(args, "no_eproc", False),
+                         apt_label=apt_label, apt_base_grade=apt_base_grade,
+                         apt_min_grade=apt_min_grade)
 
     def show(combos, label):
         print(f"=== TOP {label} ===")
         for cb in combos:
             own = f" [{ascii_safe(cb['p2']['owner_name'])}]" if cb['p2'].get("owner_name") else ""
-            print(f"  obj {cb['obj']:6.1f} | afin {cb['affinity']:>3} (G1 comp {cb['shared_g1']}) | spark {cb['spark']:4.1f}")
+            print(f"  obj {cb['obj']:6.1f} | afin {cb['affinity']:>3} | spark {cb['spark']:4.1f}")
             print(f"      P1 {ascii_safe(cb['p1']['name']):18s} (r{cb['p1']['rank']})  +  "
                   f"P2 {ascii_safe(cb['p2']['name']):18s} (r{cb['p2']['rank']}){own}")
             print(f"      stat azul heredado: {cb['blue']}")
@@ -787,6 +798,10 @@ def main():
     b.add_argument("--want", default="", help="wanted sparks, e.g. speed,stamina,Long")
     b.add_argument("--w-affinity", type=float, default=2.0, dest="w_affinity")
     b.add_argument("--w-spark", type=float, default=1.0, dest="w_spark")
+    b.add_argument("--apt", default="", help="aptitude to raise to a grade, e.g. Sprint, Long, Dirt, Pace Chaser")
+    b.add_argument("--apt-grade", default="A", dest="apt_grade", help="target grade for --apt (A or B)")
+    b.add_argument("--no-eproc", action="store_true", dest="no_eproc",
+                   help="use the legacy weighted model instead of expected-proc")
     b.add_argument("trace", nargs="?", default=None)
     b.set_defaults(func=cmd_breed)
 

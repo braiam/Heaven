@@ -199,6 +199,8 @@ def import_community_file(src_bytes: bytes, label: str = "shared") -> dict:
             if r.get("race_id") is not None}
     added = 0
     rows_in = 0
+    rejected = 0                 # rows we WON'T keep (no race_id → can't dedup)
+    valid_lines: list[str] = []  # only keep dedup-able, well-formed rows
     for line in src_bytes.decode("utf-8", "ignore").splitlines():
         line = line.strip()
         if not line:
@@ -206,14 +208,24 @@ def import_community_file(src_bytes: bytes, label: str = "shared") -> dict:
         try:
             r = json.loads(line)
         except Exception:
+            rejected += 1
             continue
         rows_in += 1
+        # require race_id + owned_skills, else it can't be deduped or counted
+        if r.get("race_id") is None or not r.get("owned_skills"):
+            rejected += 1
+            continue
+        valid_lines.append(json.dumps(r, separators=(",", ":"), default=str))
         k = (r.get("race_id"), r.get("chara_id"))
-        if r.get("race_id") is not None and k not in have:
+        if k not in have:
             have.add(k)
             added += 1
-    (COMMUNITY_DIR / f"{safe}.jsonl").write_bytes(src_bytes)
-    return {"ok": True, "rows_in_file": rows_in, "new_added": added}
+    if not valid_lines:
+        return {"ok": False, "error": "no valid rows (need race_id + owned_skills) — "
+                "is this a Heaven skill-data export?"}
+    (COMMUNITY_DIR / f"{safe}.jsonl").write_text("\n".join(valid_lines) + "\n", encoding="utf-8")
+    return {"ok": True, "rows_in_file": rows_in, "new_added": added, "rejected": rejected,
+            "duplicates": rows_in - added - rejected if rows_in >= added + rejected else 0}
 
 
 if __name__ == "__main__":

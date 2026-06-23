@@ -47,7 +47,8 @@ def _resolve_safe_dir() -> Path:
 SAFE_DATA = _resolve_safe_dir()
 
 # Names handled here (relative to a data dir).
-_SAFE_FILES = ("team_trials_history.jsonl", "stadium_observations.jsonl")
+_SAFE_FILES = ("team_trials_history.jsonl", "stadium_observations.jsonl",
+               "player_state.jsonl")
 _SAFE_TREES = ("htt",)  # htt/native/*.json
 
 _migrated = False
@@ -177,3 +178,7 @@ def breeding_dir() -> Path:
 
 def notes_path() -> Path:
     return ensure_migrated() / "notes.json"
+
+
+def player_state_path() -> Path:
+    return ensure_migrated() / "player_state.jsonl"

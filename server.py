@@ -669,10 +669,17 @@ def aggregate(rows: list[dict]) -> dict:
     Returns {trained_chara_id: {...metrics...}}"""
     by_uma: dict[int, dict] = {}
 
-    # We don't have trial_id in the row, but rows were appended in chunks of 15.
-    # Assign trial_idx by sliding through the history file 15 at a time.
+    # Group by the real trial_id (rows carry it now). Each distinct trial gets a
+    # sequential idx by FIRST appearance, so the "newest re-trained version"
+    # ordering still works AND it's robust to trials with != 15 rows (community
+    # data, partial captures) — the old positional i//15 silently mis-grouped.
+    _trial_idx_by_id: dict = {}
     for i, row in enumerate(rows):
-        trial_idx = i // 15
+        tid = row.get("trial_id")
+        if tid is None:
+            trial_idx = i // 15                       # legacy rows without trial_id
+        else:
+            trial_idx = _trial_idx_by_id.setdefault(tid, len(_trial_idx_by_id))
 
         tcid = row.get("trained_chara_id")
         if tcid is None:
@@ -1610,6 +1617,14 @@ def setup_import_extractor(req: ImportExtractorReq):
     and write it as a heir_capture_*.jsonl so the rest of the app sees it."""
     if not isinstance(req.umas, list) or not req.umas:
         return JSONResponse({"error": "empty or invalid umas array"}, status_code=400)
+    # Validate element shape up front (fail fast with a clear message instead of
+    # KeyError deep inside the parser on the first /api/data).
+    bad = [i for i, u in enumerate(req.umas)
+           if not isinstance(u, dict) or "trained_chara_id" not in u or "card_id" not in u]
+    if bad:
+        return JSONResponse({"error": f"{len(bad)} of {len(req.umas)} entries are not valid "
+                             f"trained_chara objects (missing trained_chara_id/card_id, e.g. index "
+                             f"{bad[0]}). Is this a UmaExtractor data.json?"}, status_code=400)
     load_res = {"data": {"trained_chara": req.umas}, "data_headers": {"result_code": 1}}
     pre_res = {"data": {"succession_trained_chara_data": {
         "succession_trained_chara_array": [], "summary_user_info_array": []
@@ -1764,10 +1779,25 @@ def api_affinity_pair(req: ExactPairReq):
 #  ROUTES — Team Trials (from TTAnalyzer dashboard_server.py)
 # ═══════════════════════════════════════════════════════════════════════════
 
+_TEAM_CACHE: dict = {"mtime": None, "rows": None, "agg": None}
+
+
+def _team_data():
+    """Cached (rows, agg); recomputed only when the history file changes —
+    avoids re-reading + re-aggregating the whole jsonl on every /api/team hit."""
+    try:
+        mt = HISTORY_PATH.stat().st_mtime
+    except OSError:
+        mt = 0
+    if _TEAM_CACHE["mtime"] != mt:
+        rows = load_history()
+        _TEAM_CACHE.update(mtime=mt, rows=rows, agg=aggregate(rows))
+    return _TEAM_CACHE["rows"], _TEAM_CACHE["agg"]
+
+
 @app.get("/api/team")
 def api_team():
-    rows = load_history()
-    agg = aggregate(rows)
+    rows, agg = _team_data()
     # Sort by avg_score desc
     sorted_umas = sorted(agg.values(), key=lambda x: -x["avg_score"])
 
@@ -1807,12 +1837,27 @@ def api_team():
 #  ROUTES — Player state
 # ═══════════════════════════════════════════════════════════════════════════
 
+_PLAYER_CACHE: dict = {"mtime": None, "history": None}
+
+
+def _player_history():
+    """Cached player_state history (one read per file change) — api_player used
+    to parse the whole file twice per request (latest_state + load_history)."""
+    try:
+        mt = player_state.STATE_PATH.stat().st_mtime
+    except OSError:
+        mt = 0
+    if _PLAYER_CACHE["mtime"] != mt:
+        _PLAYER_CACHE.update(mtime=mt, history=player_state.load_state_history())
+    return _PLAYER_CACHE["history"]
+
+
 @app.get("/api/player")
 def api_player():
     """All per-player varying state: identity, class, support bonus, RP,
     last opponent, last trial result, plus timelines for trending values."""
-    latest = player_state.latest_state()
-    history = player_state.load_state_history()
+    history = _player_history()
+    latest = history[-1] if history else None
     timelines: dict = {}
     if history:
         for field in ("personal_best_point", "current_rank", "team_class",
@@ -1866,6 +1911,40 @@ def api_skill_data_stats():
     rows = race_skills.load_rows()
     files = len(list(race_skills.COMMUNITY_DIR.glob("*.jsonl"))) if race_skills.COMMUNITY_DIR.exists() else 0
     return {"rows": len(rows), "community_files": files}
+
+
+@app.get("/api/health")
+def api_health():
+    """Self-diagnostic so the user can sanity-check the install without a terminal."""
+    h, s, _, _ = _db_paths()
+
+    def _lines(p):
+        try:
+            return sum(1 for _ in open(p, encoding="utf-8"))
+        except OSError:
+            return 0
+    try:
+        master._conn()
+        mdb = True
+    except Exception:
+        mdb = False
+    try:
+        ps = (player_state.latest_state() or {}).get("collected_at")
+    except Exception:
+        ps = None
+    try:
+        races = len(race_skills.load_rows())
+    except Exception:
+        races = 0
+    return {
+        "ok":               mdb,
+        "master_mdb":        mdb,
+        "team_trials_rows":  _lines(h),
+        "stadium_rows":      _lines(s),
+        "race_skill_rows":   races,
+        "player_state_last": ps,
+        "data_dir":          str(safe_store.ensure_migrated()),
+    }
 
 
 @app.post("/api/skill_data/import_races")
@@ -2050,14 +2129,21 @@ def _db_paths():
 
 
 def _backup_db():
-    """Snapshot the live datasets to single rolling .bak files (overwritten each
-    time) so the last import can always be undone."""
+    """Snapshot the live datasets before an import. Keeps a small rotation
+    (.bak newest, then .bak.1, .bak.2) so two imports in a row don't destroy the
+    undo point of the first. Restore still reads .bak (the most recent pre-import
+    snapshot)."""
     import shutil
     h, s, hb, sb = _db_paths()
-    if h.exists():
-        shutil.copy2(h, hb)
-    if s.exists():
-        shutil.copy2(s, sb)
+    for live, bak in ((h, hb), (s, sb)):
+        if not live.exists():
+            continue
+        b1, b2 = bak.with_name(bak.name + ".1"), bak.with_name(bak.name + ".2")
+        if b1.exists():
+            shutil.copy2(b1, b2)
+        if bak.exists():
+            shutil.copy2(bak, b1)
+        shutil.copy2(live, bak)
 
 
 @app.get("/api/db/export")

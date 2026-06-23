@@ -37,7 +37,9 @@
   .src{color:var(--ink2);font-size:10px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:7px;
        padding:6px 11px;border:1px solid var(--line);border-radius:20px;background:var(--panel);white-space:nowrap}
   .src::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:tt-pulse 2.4s infinite}
-  .tabs{display:flex;gap:2px;margin-left:8px;align-items:stretch;flex:1;overflow:hidden}
+  .tabs{display:flex;gap:2px;margin-left:8px;align-items:stretch;flex:1;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{white-space:nowrap;flex:none}
   .tab{position:relative;padding:9px 14px 11px;border:none;border-radius:7px 7px 0 0;background:none;cursor:pointer;color:var(--ink3);
        font-size:12.5px;font-weight:600;letter-spacing:.3px;transition:color .15s;display:flex;align-items:center;white-space:nowrap}
   .tab:hover{color:var(--ink2);background:none}
@@ -1161,7 +1163,9 @@
         <option value="score">Score</option>
         <option value="newest">Newest First</option>
       </select>
+      <button id="invResetAll" type="button" class="ghost" style="font-size:11px;padding:5px 11px" title="Reset all inventory filters (name, min-white, source, aptitude, sort, target, factor filters)">Reset filters</button>
       <span class="inv-count" id="invCount"></span>
+      <span id="invActiveFilters" class="muted" style="font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px"></span>
     </div>
   </div>
 
@@ -1372,7 +1376,7 @@
         <div class="tt-field-label">Style</div>
         <select id="tt-planner-style" class="tt-select"><option value="">Style...</option></select>
       </div>
-      <button class="tt-btn-primary" onclick="ttRunPlanner()">PLAN</button>
+      <button class="tt-btn-primary" id="tt-plan-btn">PLAN</button>
       <span id="tt-planner-status" class="tt-status-line"></span>
     </div>
     <div id="tt-planner-result" style="margin-top:18px"></div>
@@ -1410,7 +1414,7 @@
           <option value="">All</option><option value="NIGE">Front Runner</option><option value="SENKO">Pace Chaser</option><option value="SASHI">Late Surger</option><option value="OIKOMI">End Closer</option>
         </select>
       </div>
-      <button class="tt-btn-primary" onclick="ttRunSkillLookup()">LOOK UP</button>
+      <button class="tt-btn-primary" id="tt-sl-btn">LOOK UP</button>
       <span id="tt-sl-status" class="tt-status-line"></span>
     </div>
     <div id="tt-sl-result" style="margin-top:18px"></div>
@@ -1483,8 +1487,16 @@ const TYPE_ORDER=['blue','pink','green','white'];
 const TYPE_LABEL={blue:'Blue (stats)',pink:'Pink (aptitude)',green:'Green (unique)',white:'White (skills/races)'};
 
 async function load(){
-  const [dataRes] = await Promise.all([fetch('/api/data'), loadRankIcons()]);
-  DATA=await dataRes.json();
+  let dataRes;
+  try{
+    [dataRes] = await Promise.all([fetch('/api/data'), loadRankIcons()]);
+    if(!dataRes.ok) throw new Error('HTTP '+dataRes.status);
+    DATA=await dataRes.json();
+  }catch(e){
+    const el=$('#src'); if(el){ el.textContent='⚠ could not reach server — is it running? (retry: F5)'; el.style.color='#ff6e7e'; }
+    const inv=$('#invList'); if(inv) inv.innerHTML='<div class="muted" style="padding:20px">Failed to load data. Make sure the Heaven server is running. <button class="ghost" onclick="load()" style="font-size:11px;margin-left:6px">Retry</button></div>';
+    return;
+  }
   $('#src').textContent=`${DATA.mine.length} umas`
       +(DATA.rentable.length?` · ${DATA.rentable.length} borrowable`:'');
   const stats=['Speed','Stamina','Power','Guts','Wit'];
@@ -1915,7 +1927,7 @@ function umaCard(u){
       </div>
       <div class="u-score">
         <button class="expand-btn" type="button" aria-label="expand">+</button>
-        <div class="scoreline"><span class="sc-lab">SCORE</span><span class="sc-val mono" style="color:${scoreCol}">${score.toLocaleString()}</span></div>
+        <div class="scoreline" title="Rank score. Gold = 20,000+ (SS-ish) · light = 19,000+ (S-ish) · plain = below"><span class="sc-lab">SCORE</span><span class="sc-val mono" style="color:${scoreCol}">${score.toLocaleString()}</span></div>
         ${hasBuild?`<div class="fitbar-wrap">
           <div class="fitbar-head"><span>BUILD FIT</span><b>${u._buildFit||0}</b></div>
           <div class="fitbar"><i style="width:${fitPct}%"></i></div>
@@ -2181,8 +2193,10 @@ function renderInv(){
   const shown=rows.slice(0, _invShown);
   const suffix = rows.length > _invShown ? ` — showing ${_invShown}` : '';
   $('#invCount').textContent=`${rows.length} umas (${nMine} yours, ${nFr} friends)${suffix}`;
-  const showMoreHtml = rows.length > _invShown
-    ? `<div class="inv-show-more"><button class="ghost" id="invShowMore">Show ${Math.min(LIST_LIMIT, rows.length - _invShown)} more of ${rows.length - _invShown} remaining</button></div>` : '';
+  _updateActiveFiltersChip();
+  const _rem0 = rows.length - _invShown;
+  const showMoreHtml = _rem0 > 0
+    ? `<div class="inv-show-more"><button class="ghost" id="invShowMore">Show ${Math.min(LIST_LIMIT, _rem0)} more</button> <button class="ghost" id="invShowAll">Show all (${_rem0})</button></div>` : '';
   $('#invList').innerHTML=shown.map(umaCard).join('') + showMoreHtml;
   // top build-fit readout (best fit in the list)
   const fr=$('#invFitReadout');
@@ -2205,12 +2219,10 @@ function _showMoreInv(){
   frag.innerHTML = batch.map(umaCard).join('');
   const remaining = _invRows.length - _invShown;
   if(remaining > 0){
-    frag.innerHTML += `<div class="inv-show-more"><button class="ghost" id="invShowMore">Show ${Math.min(LIST_LIMIT, remaining)} more of ${remaining} remaining</button></div>`;
+    frag.innerHTML += `<div class="inv-show-more"><button class="ghost" id="invShowMore">Show ${Math.min(LIST_LIMIT, remaining)} more</button> <button class="ghost" id="invShowAll">Show all (${remaining})</button></div>`;
   }
   $('#invList').appendChild(frag);
   _bindRows(frag);
-  const sm2=document.getElementById('invShowMore');
-  if(sm2) sm2.onclick=_showMoreInv;
   const nMine=_invRows.filter(u=>u.src!=='friend').length, nFr=_invRows.length-nMine;
   const suffix = _invRows.length > _invShown ? ` — showing ${_invShown}` : '';
   $('#invCount').textContent=`${_invRows.length} umas (${nMine} yours, ${nFr} friends)${suffix}`;
@@ -2248,6 +2260,20 @@ function _bindRows(scope){
   });
 }
 function _bindInvList(){ _bindRows($('#invList')); }
+function _showAllInv(){
+  const batch=_invRows.slice(_invShown);
+  _invShown=_invRows.length;
+  const sm=document.getElementById('invShowMore'); if(sm){ const w=sm.closest('.inv-show-more'); if(w) w.remove(); }
+  const frag=document.createElement('div'); frag.innerHTML=batch.map(umaCard).join('');
+  $('#invList').appendChild(frag); _bindRows(frag);
+  const nMine=_invRows.filter(u=>u.src!=='friend').length, nFr=_invRows.length-nMine;
+  $('#invCount').textContent=`${_invRows.length} umas (${nMine} yours, ${nFr} friends)`;
+}
+// delegated wiring for both show-more buttons (the first one wasn't bound before)
+document.addEventListener('click', e=>{
+  if(e.target.id==='invShowMore') _showMoreInv();
+  else if(e.target.id==='invShowAll') _showAllInv();
+});
 // delegated "+N more" white-skills toggle in dossiers
 document.addEventListener('click', e=>{ const t=e.target.closest('.ws-toggle'); if(t){ e.stopPropagation(); toggleWhiteSkills(t); } });
 
@@ -2463,6 +2489,10 @@ function renderWant(){
 function _addWant(){const v=$('#wantIn').value.trim();if(v&&!WANT.includes(v)){WANT.push(v);renderWant();}$('#wantIn').value='';}
 $('#wantIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();_addWant();}});
 $('#wantClear').onclick=()=>{
+  // QoL: confirm if there's something to lose (target / sparks / results)
+  const hasStuff = (WANT.length>0) || $('#target').value || $('#breedStyle').value ||
+                   $('#breedDistance').value || $('#ownRes').innerHTML.trim() || $('#rentRes').innerHTML.trim();
+  if(hasStuff && !confirm('Clear the whole breed screen (target, style, distance, wanted sparks and results)?')) return;
   // wanted sparks
   WANT.length=0; renderWant(); $('#wantIn').value='';
   // target
@@ -2632,8 +2662,15 @@ async function runBreed(){
   const bApt=$('#breedAptTarget').value;
   if(bApt){ breedBody.apt_aptitude = bApt; breedBody.apt_grade = $('#breedAptGrade').value||'A'; }
   if($('#breedStrict').checked && ACT_RATES) breedBody.strict_act_pct = parseFloat($('#breedStrictPct').value)||60;
-  const res=await (await fetch('/api/breed',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(breedBody)})).json();
+  let res;
+  try{
+    const resp=await fetch('/api/breed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(breedBody)});
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    res=await resp.json();
+  }catch(e){
+    $('#ownRes').innerHTML='<span style="color:#ff6e7e">Compute failed — server error.</span> <button class="ghost" onclick="runBreed()" style="font-size:11px">Retry</button>';
+    $('#rentRes').innerHTML=''; return;
+  }
   BREED_APT = res.apt_target || null;
   const wTag = res.weighted ? ' <span style="font-size:9px;color:gold" title="Weighted by act%">★ weighted</span>' : '';
   $('#ownRes').innerHTML=(res.own.map((c,i)=>combo(c,i)).join('')||'<span class=muted>none</span>') + (wTag && res.own.length ? `<div style="text-align:right;margin-top:4px">${wTag}</div>` : '');
@@ -2835,11 +2872,17 @@ function openPairDetail(d){
     <div class="odds-grid" id="oddsGrid">${sparkOddsGrid(d.spark_odds, 'full_run')}</div>` : '';
 
   const treeHtml = lineageTree(d);
+  // QoL: inbreeding check — same character appearing in both parents' lineages
+  const _chr=cid=>Math.floor((cid||0)/100);
+  const _lin=p=>{const m={};const add=(cid,nm)=>{const c=_chr(cid);if(c)m[c]=nm||('#'+cid);};add(p.card_id,p.name);(p.grandparents||[]).forEach(g=>add(g.card_id,g.name));return m;};
+  const _m1=_lin(d.p1),_m2=_lin(d.p2);
+  const _shared=Object.keys(_m1).filter(c=>_m2[c]).map(c=>_m1[c]);
+  const inbreedChip=_shared.length?` · <span title="Both parents' lineages share this ancestor — less spark variety" style="color:#ffb84d;font-weight:700">⚠ shares ${esc(_shared.join(', '))}</span>`:'';
   $('#detailBody').innerHTML=`
     <div class="drow"><div style="flex:1">
       <div class="dname">${esc(d.p1.name)} × ${esc(d.p2.name)}</div>
-      <div class="dmeta">breeding <b>${esc(d.target_name)}</b> · <b class="c-aff">Affinity ${c.total}</b>${c.win_bonus?' · <span class="c-g1">+'+c.win_bonus+' race</span>':''}</div>
-    </div><button class="ghost" id="dClose">Close ✕</button></div>
+      <div class="dmeta">breeding <b>${esc(d.target_name)}</b> · <b class="c-aff">Affinity ${c.total}</b>${c.win_bonus?' · <span class="c-g1">+'+c.win_bonus+' race</span>':''}${inbreedChip}</div>
+    </div><button class="ghost" id="dCopy" title="Copy this pair to clipboard">⧉ Copy</button><button class="ghost" id="dClose">Close ✕</button></div>
     ${treeHtml}
     ${oddsPanel}
     <details style="margin-top:8px"><summary class="seclab" style="cursor:pointer;user-select:none">Inherited factors + parent detail</summary>
@@ -2847,6 +2890,10 @@ function openPairDetail(d){
     <div class="dmain" style="margin-top:8px;gap:8px">${parentCol(d.p1,'P1')}${parentCol(d.p2,'P2')}</div>
     </details>`;
   $('#dClose').onclick=()=>{_BREED_HI=new Set();_BREED_HI_KW=[];$('#detail').classList.add('hide');};
+  $('#dCopy').onclick=()=>{
+    const txt=`${d.p1.name} × ${d.p2.name} → ${d.target_name} · Affinity ${c.total}${c.win_bonus?' (+'+c.win_bonus+' race)':''}`;
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>{const b=$('#dCopy');if(b){const o=b.textContent;b.textContent='✓ Copied';setTimeout(()=>b.textContent=o,1200);}}).catch(()=>{});
+  };
   // Odds toggle + expandable source details
   if(hasOdds){
     $$('.odds-btn').forEach(btn=>{
@@ -2863,8 +2910,12 @@ function openPairDetail(d){
 }
 async function showPair(p1id,p2id){
   if(!CUR_TARGET){alert('Pick a target uma (Breed: field) first');return;}
-  const d=await (await fetch('/api/pair',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({target:CUR_TARGET,p1_id:p1id,p2_id:p2id})})).json();
+  let d;
+  try{
+    const resp=await fetch('/api/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({target:CUR_TARGET,p1_id:p1id,p2_id:p2id})});
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    d=await resp.json();
+  }catch(e){ alert('Could not load pair detail — server error.'); return; }
   if(d.error){alert(d.error);return;}
   openPairDetail(d);
 }
@@ -2874,7 +2925,49 @@ function bindResultClicks(box){
 
 // tabs + events
 $$('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
-$('#filter').addEventListener('input',renderInv);
+// QoL: debounce the inventory filter (was re-rendering the whole list per keystroke)
+let _filterTimer=null;
+$('#filter').addEventListener('input',()=>{ clearTimeout(_filterTimer); _filterTimer=setTimeout(renderInv,150); });
+// QoL: reset ALL inventory filters in one click
+function clearAllInvFilters(){
+  $('#filter').value=''; $('#minWhite').value='0'; $('#aptFilter').value='';
+  $('#sortBy').value='affinity'; $('#aptStrong')?.classList.remove('active');
+  SRC_FILTER=''; updateSrcBtns();
+  for(const k in FILTERS) FILTERS[k]=[];
+  renderFcats(); updateFactorsCount();
+  if(typeof TARGET_CARD!=='undefined' && TARGET_CARD && typeof clearTarget==='function') clearTarget();
+  renderInv();
+}
+$('#invResetAll')?.addEventListener('click', clearAllInvFilters);
+function _updateActiveFiltersChip(){
+  const el=$('#invActiveFilters'); if(!el) return;
+  const af=[];
+  if(SRC_FILTER==='mine')af.push('Yours'); else if(SRC_FILTER==='friend')af.push('Friends');
+  const fv=$('#filter').value.trim(); if(fv)af.push('“'+fv+'”');
+  if(+$('#minWhite').value>0)af.push('white≥'+$('#minWhite').value);
+  const ap=$('#aptFilter'); if(ap&&ap.value)af.push(ap.selectedOptions[0].text);
+  if($('#aptStrong')?.classList.contains('active'))af.push('B+');
+  const sb=$('#sortBy'); if(sb&&sb.value!=='affinity')af.push('sort: '+sb.selectedOptions[0].text);
+  if(typeof TARGET_CARD!=='undefined'&&TARGET_CARD)af.push('target');
+  const nf=['blue','pink','green','whiteReq','whitePref','lineage'].reduce((n,k)=>n+(FILTERS[k]||[]).filter(f=>f.name).length,0);
+  if(nf)af.push(nf+' factor'+(nf>1?'s':''));
+  el.textContent=af.length?('· '+af.join(' · ')):'';
+}
+// QoL: keyboard shortcuts
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    const cp=$('#charaPickerBg'); if(cp && !cp.classList.contains('hide')){ closeCharaPicker(); return; }
+    const dt=$('#detail'); if(dt && !dt.classList.contains('hide')){ dt.classList.add('hide'); return; }
+  }
+  const tag=(document.activeElement&&document.activeElement.tagName)||'';
+  if(e.key==='/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(tag)){
+    const inv=$('#inv'); if(inv && !inv.classList.contains('hide')){ e.preventDefault(); $('#filter').focus(); }
+  }
+});
+// QoL: Enter in the character picker picks the first result
+$('#charaPickerSearch')?.addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ const first=$('#charaPickerGrid')?.querySelector('.chara-pick-item'); if(first){ e.preventDefault(); first.click(); } }
+});
 $('#minWhite').addEventListener('input',renderInv);
 $('#sortBy').addEventListener('change',renderInv);
 $('#aptFilter')?.addEventListener('change',renderInv);
@@ -2914,7 +3007,14 @@ $('#fcats').addEventListener('input',e=>{
   }
 });
 $('#clearF').onclick=()=>{for(const k in FILTERS)FILTERS[k]=[];renderFcats();renderInv();updateFactorsCount();};
-$('#run').onclick=runBreed;
+// QoL: busy state on async action buttons (spinner text + prevents double-submit)
+function _wireBusy(id, fn){
+  const b=$('#'+id); if(!b) return;
+  b.onclick=async ()=>{ if(b.disabled) return; const old=b.textContent; b.disabled=true; b.textContent='…'; try{ await fn(); } finally{ b.disabled=false; b.textContent=old; } };
+}
+_wireBusy('run', runBreed);
+_wireBusy('tt-plan-btn', ttRunPlanner);
+_wireBusy('tt-sl-btn', ttRunSkillLookup);
 $('#trayGo').onclick=()=>{
   const t=DATA.targets.find(x=>x.name===$('#trayTarget').value.trim());
   if(t)CUR_TARGET=t.card_id;
@@ -3200,6 +3300,8 @@ function captureUIState(){
       p2: SELP.p2?.trained_chara_id,
       trayTarget: $('#trayTarget')?.value,
     },
+    ttSort: { k: TT_SORT_KEY, d: TT_SORT_DIR },
+    ttStadiumSort: { k: TT_STADIUM_SORT_KEY, d: TT_STADIUM_SORT_DIR },
   };
 }
 
@@ -3211,6 +3313,8 @@ async function restoreUIState(s){
   if(s.aptFilter!=null && $('#aptFilter')) $('#aptFilter').value = s.aptFilter;
   if(s.aptStrong && $('#aptStrong')) $('#aptStrong').classList.add('active');
   if(s.srcFilter){ SRC_FILTER = s.srcFilter; updateSrcBtns(); }
+  if(s.ttSort){ TT_SORT_KEY=s.ttSort.k; TT_SORT_DIR=s.ttSort.d; }
+  if(s.ttStadiumSort){ TT_STADIUM_SORT_KEY=s.ttStadiumSort.k; TT_STADIUM_SORT_DIR=s.ttStadiumSort.d; }
   if(s.filters){ for(const k in FILTERS) if(s.filters[k]) FILTERS[k] = s.filters[k]; renderFcats(); }
   if(s.breedTarget) $('#target').value = s.breedTarget;
   if(s.breedTargetCard){
@@ -3640,7 +3744,11 @@ async function slImportData(input){
   try{
     const r=await fetch('/api/skill_data/import',{method:'POST',body:fd}).then(r=>r.json());
     input.value=''; await slLoadPoolStats();
-    alert(r.ok?`Merged: +${r.new_added} new data points (file had ${r.rows_in_file}). Duplicates skipped.`:('Import failed: '+(r.error||'?')));
+    if(r.ok){
+      alert(`Merged: +${r.new_added} new data points\n`+
+            `(file had ${r.rows_in_file}; ${r.duplicates||0} duplicates skipped`+
+            (r.rejected?`, ${r.rejected} invalid rejected`:'')+`).`);
+    } else { alert('Import failed: '+(r.error||'?')); }
   }catch(e){ alert('Import failed'); }
 }
 
@@ -3659,30 +3767,50 @@ async function ttRunSkillLookup(){
   status.textContent='Loading…';
   const dist=$('#tt-sl-dist').value, style=$('#tt-sl-style').value;
   const qs=`q=${encodeURIComponent(q)}`+(dist?`&dist=${dist}`:'')+(style?`&style=${style}`:'');
-  const r=await fetch(`/api/skill_planner/lookup?${qs}`).then(r=>r.json());
+  let r;
+  try{
+    const resp=await fetch(`/api/skill_planner/lookup?${qs}`);
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    r=await resp.json();
+  }catch(e){ status.textContent=''; result.innerHTML='<div style="color:#ff6e7e">Lookup failed — server error. <button class="ghost" onclick="ttRunSkillLookup()" style="font-size:11px">Retry</button></div>'; return; }
   status.textContent='';
   if(r.error==='ambiguous'){
+    // data-name + delegation (no inline onclick string interpolation = no injection)
     result.innerHTML=`<div style="color:var(--mut);font-size:13px;margin-bottom:8px">Multiple matches — pick one:</div>`+
       `<div style="display:flex;flex-wrap:wrap;gap:6px">`+
-      r.candidates.map(c=>`<button class="ghost" style="font-size:11px" onclick="$('#tt-sl-input').value='${c.name.replace(/'/g,"\\'")}';ttRunSkillLookup()">${c.name}</button>`).join('')+
+      r.candidates.map(c=>`<button class="ghost sl-cand" style="font-size:11px" data-name="${esc(c.name)}">${esc(c.name)}</button>`).join('')+
       `</div>`;
+    result.querySelectorAll('.sl-cand').forEach(b=>b.onclick=()=>{$('#tt-sl-input').value=b.dataset.name;ttRunSkillLookup();});
     return;
   }
-  if(r.error){result.innerHTML=`<div style="color:#ff6e7e">${r.error}</div>`;return;}
+  if(r.error){result.innerHTML=`<div style="color:#ff6e7e">${esc(r.error)}</div>`;return;}
   let html=`<div class="tt-lookup-summary">
-    <div><div class="tt-lookup-skill-name">${r.name}</div><div class="tt-lookup-meta">SP cost: ${r.sp_cost??'?'}</div></div>
+    <div><div class="tt-lookup-skill-name">${esc(r.name)}</div><div class="tt-lookup-meta">SP cost: ${r.sp_cost??'?'}</div></div>
     <div class="tt-lookup-overall">
       <div class="tt-lookup-overall-pct" style="color:${ttSlPctColor(r.overall_pct)}">${r.overall_pct==null?'n/a':r.overall_pct+'%'}</div>
       <div class="tt-lookup-overall-sub">${r.overall_activated}/${r.overall_owned} owned races</div>
     </div>
   </div>`;
   if(r.note){
-    html+=`<div class="tt-empty">${r.note}</div>`;
+    html+=`<div class="tt-empty">${esc(r.note)}</div>`;
   } else {
     html+=`<table class="tt-planner"><thead><tr><th>Uma</th><th>Owned</th><th>Activated</th><th>Act%</th></tr></thead><tbody>`+
-      r.umas.map(u=>`<tr><td style="font-weight:600">${u.chara_name}</td><td>${u.owned}</td><td>${u.activated}</td>
-        <td style="font-weight:700;color:${ttSlPctColor(u.activation_pct)}">${u.activation_pct}%</td></tr>`).join('') +
-      `</tbody></table>`;
+      r.umas.map(u=>{
+        const low=u.owned<5;   // thin sample → dim + flag so it's not over-trusted
+        return `<tr style="${low?'opacity:.45':''}"><td style="font-weight:600">${esc(u.chara_name)}${low?' <span style="font-size:9px;color:var(--mut);font-weight:600">few</span>':''}</td><td>${u.owned}</td><td>${u.activated}</td>
+        <td style="font-weight:700;color:${ttSlPctColor(u.activation_pct)}">${u.activation_pct}%</td></tr>`;
+      }).join('') +
+      `</tbody></table>`+
+      `<div class="muted" style="font-size:10px;margin-top:6px">Rows with under 5 races are dimmed (low sample — % not reliable yet).</div>`;
+    // breakdown by distance + by running style
+    const cap=s=>(s||'').charAt(0).toUpperCase()+(s||'').slice(1);
+    const bdRow=(arr,fmt)=>arr.map(x=>`<span style="display:inline-block;margin:2px 12px 2px 0;white-space:nowrap"><b style="color:${ttSlPctColor(x.pct)}">${x.pct}%</b> <span class="muted" style="font-size:11px">${esc(fmt?fmt(x.key):x.key)} (${x.owned})</span></span>`).join('');
+    if((r.by_distance&&r.by_distance.length)||(r.by_style&&r.by_style.length)){
+      html+=`<div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:28px">`;
+      if(r.by_distance&&r.by_distance.length) html+=`<div><div class="muted" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">By distance</div>${bdRow(r.by_distance,cap)}</div>`;
+      if(r.by_style&&r.by_style.length) html+=`<div><div class="muted" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">By style</div>${bdRow(r.by_style)}</div>`;
+      html+=`</div>`;
+    }
   }
   result.innerHTML=html;
 }

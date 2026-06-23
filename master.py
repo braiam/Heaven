@@ -264,6 +264,7 @@ _TITLE_SADDLE_NAMES = {
 }
 
 
+@lru_cache(maxsize=None)
 def saddle_name(saddle_id):
     if saddle_id in _TITLE_SADDLE_NAMES:
         return _TITLE_SADDLE_NAMES[saddle_id]

@@ -20,8 +20,12 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-DATA_DIR = Path(__file__).parent / "data"
-STATE_PATH = DATA_DIR / "player_state.jsonl"
+import safe_store
+import jsonl_util
+
+# Persist in the portable safe dir (%LOCALAPPDATA%\Heaven) like history/stadium,
+# so the player's rank/RP/bonus history survives re-downloading the project.
+STATE_PATH = safe_store.player_state_path()
 
 
 def _get_nested(obj: Any, path: list[str]) -> Any:
@@ -109,9 +113,10 @@ def extract_state(payloads_by_endpoint: dict[str, dict]) -> dict:
 
 
 def append_state(state: dict) -> None:
-    DATA_DIR.mkdir(exist_ok=True)
-    with open(STATE_PATH, "a", encoding="utf-8") as f:
-        f.write(json.dumps(state, ensure_ascii=False, default=str) + "\n")
+    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    # durable append (single write + fsync) instead of a bare write that can
+    # leave a truncated last line on crash.
+    jsonl_util.append_jsonl(STATE_PATH, [state], json_kwargs={"default": str})
 
 
 def load_state_history() -> list[dict]:

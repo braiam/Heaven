@@ -294,8 +294,11 @@ def get_gpu():
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
+        s.settimeout(1.0)            # never hang the whole setup if offline
         s.connect(("8.8.8.8", 80))
         return s.getsockname()[0]
+    except OSError:
+        return "127.0.0.1"
     finally:
         s.close()
 
