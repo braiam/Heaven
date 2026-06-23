@@ -28,7 +28,11 @@ def find_mdb():
 
 @lru_cache(maxsize=1)
 def _conn():
-    path = find_mdb()
+    import argparse
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--master-mdb-path", default=None)
+    args, _unknown = parser.parse_known_args()
+    path = args.master_mdb_path or find_mdb()
     if not path:
         raise FileNotFoundError("No encuentro master.mdb (Umamusume no instalado en este equipo?)")
     return sqlite3.connect(path, check_same_thread=False)
